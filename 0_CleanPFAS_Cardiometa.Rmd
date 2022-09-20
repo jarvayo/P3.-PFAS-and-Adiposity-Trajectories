@@ -1,0 +1,91 @@
+#####                                                        #####
+##### CLEAN PFASBP DATA SET AND ENFORCE ELIGIBILITY CRITERIA #####
+#####                                                        #####
+
+```{r}
+##### LOAD PACKAGES
+library("sas7bdat")
+library("haven")
+library("data.table")
+
+```
+
+```{r}
+##### LOAD DATASET
+PFAS <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/PFASandMidlife/Data/ja_062922.sas7bdat")
+PFAS[PFAS == "NaN"] <- NA
+PFAS[PFAS == ""] <- NA
+
+```
+
+
+```{r}
+##### DROP UNNECESSARY VARIABLES
+#PFAS <- subset(PFASBP, select = c(aid, ga_days, mom_agey_bp, g_age_days_COLL_D_BLD1, sys, dias,  
+#                                      Me_PFOSA_AcOH2, PFOA, PFHxS, PFNA2, PFOS, Et_PFOSA_AcOH,
+#                                      bmi_mom_prepreg_d,  race2_mom_epi_epia_d,parity_d, coll_grad, 
+#                                      gt70k, income_hh_epq_epqa_d, htn_rx_preg, t1diab_mom_epi_epia_d, 
+#                                      t2diab_mom_epi_epia_d, highbp_mom_epi_epia_d,mod_pre_d, 
+#                                      vig_pre_d, smokpreg_final_d,alc_d_f1,alc_d_bef_learn_f1, 
+#                                      alc_d_aft_learn_f1, count))
+
+```
+
+```{r}
+##### DETERMINE PFAS MISSINGNESS
+summary(PFAS$PFOS)
+summary(PFAS$PFOA)
+summary(PFAS$PFOSA)
+summary(PFAS$PFNA2)
+summary(PFAS$PFHxS)
+summary(PFAS$PFDeA)
+summary(PFAS$Me_PFOSA_AcOH2)
+summary(PFAS$Et_PFOSA_AcOH) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH PFAS
+
+##### DETERMINE OUTCOME MISSINGNESS
+summary(PFAS$VAT_AREA_mdxa17)
+summary(PFAS$VAT_MASS_mdxa17)
+summary(PFAS$VAT_VOLUME_mdxa17)
+summary(PFAS$SAT_AREA_mdxa17)
+summary(PFAS$SAT_MASS_mdxa17)
+summary(PFAS$SAT_VOLUME_mdxa17)
+summary(PFAS$TAT_AREA_mdxa17)
+summary(PFAS$TAT_MASS_mdxa17)
+summary(PFAS$TAT_VOLUME_mdxa17) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH DXA MEASURE
+
+summary(PFAS$bmi_mom_prepreg_d)
+summary(PFAS$WEIGHT_mdxa17)
+summary(PFAS$mom_waist_ma17)
+
+
+##### EXCLUDE INELEGIBLE PARTICIPANTS
+PFAS_1 <- subset(PFAS, !is.na(PFOS)) # MISSING PFASBP DATA
+PFAS_2 <- subset(PFAS_1, g_age_days_COLL_D_BLD1 <= 154) # MISSING 1ST OR 2ND TRIMESTER PFAS DATA (I.E., 22 WEEKS GESTATION)
+PFAS_3 <- subset(PFAS_2, !is.na(VAT_AREA_mdxa17)) # MISSING DXA MEASURES
+PFAS_4 <- subset(PFAS_3, !is.na(mom_waist_ma17)) # MISSING WAIST CIRCUMFERENCE
+PFAS_5 <- subset(PFAS_4, !is.na(mom_bodyfat_ma17)) # MISSING TOTAL BODY FAT %
+summary(PFAS_2$g_age_days_COLL_D_BLD1)
+
+#table(PFAS_4$highbp_mom_epi_epia_d)
+#PFAS_5 <- subset(PFAS_4, highbp_mom_epi_epia_d != 1) # HISTORY OF HYPERTENSION
+
+table(PFAS_5$t1diab_mom_epi_epia_d)
+table(PFAS_5$t2diab_mom_epi_epia_d)
+PFAS_6 <- subset(PFAS_5, t1diab_mom_epi_epia_d != 1 & t2diab_mom_epi_epia_d != 1) # HISTORY OF DIABETES
+
+summary(PFAS_6$mom_bodyfat_ma17)
+
+```
+
+```{r}
+##### DROP UNNECESSARY VARIABLES
+#PFAS_5 <- subset(PFASBP_5, select = -c(htn_rx_preg, t1diab_mom_epi_epia_d, t2diab_mom_epi_epia_d,
+#                                     highbp_mom_epi_epia_d))
+
+##### SAVE DATASET
+write.csv(PFAS_6, "C:/Users/jarva/Desktop/James-Todd Lab/PFASandMidlife/Data/PFAS_C.csv", row.names = T)
+write_sas(PFAS_6, "C:/Users/jarva/Desktop/James-Todd Lab/PFASandMidlife/Data/PFAS_C.sas7bdat")
+# THE "C" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS CLEAN
+
+```
+

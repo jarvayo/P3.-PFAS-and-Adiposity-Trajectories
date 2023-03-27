@@ -1,0 +1,103 @@
+#####                                                         #####
+##### CLEAN PFAS-BP DATA SET AND ENFORCE ELIGIBILITY CRITERIA #####
+#####                                                         #####
+
+```{r}
+##### LOAD PACKAGES
+library("sas7bdat")
+library("haven")
+library("data.table")
+
+##### LOAD DATASET
+PFAS <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/ja_080622.sas7bdat")
+BP <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/mage.sas7bdat")
+
+##### MERGE DATASETS
+PFASBP <- merge(BP, PFAS, by = "aid")
+
+```
+
+```{r}
+##### DROP BP MEASURES TAKEN DURING THE FIRST TRIMESTER
+PFASBP <- subset(PFASBP, ga_days >83) # 3943 1ST TRIMESTER MEASURES DROPPED
+
+##### ADD A "COUNT" VARIABLE TO TELL US HOW MANY BP MEASURES EACH PERSON HAS
+setDT(PFASBP)[, count := uniqueN(ga_days), by = aid]
+
+##### ADD A "DUP" VARIABLE TO COUNT NUMBER OF DUPLICATED IDs
+PFASBP$dup_num <- length(unique(PFASBP$ga_days)) == nrow(PFASBP)
+PFASBP$dup_num <- sequence(table(PFASBP$aid))
+
+##### DROP INDIVIDUALS WITH LESS THAN 2 BP MEASURES
+PFASBP <- subset(PFASBP, PFASBP$count >=2)
+
+##### ONLY KEEP THE FIRST OBSERVATION PER UNIQUE AID
+PFASBP <- subset(PFASBP, dup_num == 1)
+
+##### SEE LIST OF VARIABLES
+#ls(PFASBP)
+
+```
+
+```{r}
+##### DROP UNNECESSARY VARIABLES
+PFASBP_0 <- subset(PFASBP, select = c(familyid, aid, ga_days, mom_agey_bp, g_age_days_COLL_D_BLD1, sys,  
+                                      dias, PFOS, PFOA, PFNA2, PFHxS, Me_PFOSA_AcOH2, Et_PFOSA_AcOH,
+                                      bmi_mom_prepreg_d, race2_mom_epi_epia_d,parity_d, coll_grad, 
+                                      gt70k, income_hh_epq_epqa_d, htn_rx_preg, t1diab_mom_epi_epia_d, 
+                                      t2diab_mom_epi_epia_d, highbp_mom_epi_epia_d,mod_pre_d, 
+                                      vig_pre_d, smokpreg_final_d,alc_d_f1,alc_d_bef_learn_f1, 
+                                      alc_d_aft_learn_f1, mom_firstperiod_12y, count))
+
+```
+
+```{r}
+##### DETERMINE PFAS-BP MISSINGNESS
+summary(PFASBP_0$PFOS)
+summary(PFASBP_0$PFOA)
+summary(PFASBP_0$PFOSA)
+summary(PFASBP_0$PFNA2)
+summary(PFASBP_0$PFHxS)
+summary(PFASBP_0$PFDeA)
+summary(PFASBP_0$Me_PFOSA_AcOH2)
+summary(PFASBP_0$Et_PFOSA_AcOH) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH PFASBP (N = 482)
+
+##### EXCLUDE INELEGIBLE PARTICIPANTS
+PFASBP_1 <- subset(PFASBP_0, !is.na(PFOS)) # MISSING PFASBP DATA (N = 482)
+PFASBP_1 <- subset(PFASBP_1, g_age_days_COLL_D_BLD1 <= 84) # MISSING 1ST TRIMESTER PFAS DATA (N = 221)
+
+table(PFASBP_1$highbp_mom_epi_epia_d)
+PFASBP_2 <- subset(PFASBP_1, highbp_mom_epi_epia_d != 1) # HISTORY OF HYPERTENSION (N = 88)
+
+table(PFASBP_2$t1diab_mom_epi_epia_d)
+table(PFASBP_2$t2diab_mom_epi_epia_d)
+PFASBP_3 <- subset(PFASBP_2, t1diab_mom_epi_epia_d != 1 & t2diab_mom_epi_epia_d != 1) # HISTORY OF DIABETES (N = 10)
+
+table(PFASBP_3$htn_rx_preg)
+PFASBP_4 <- subset(PFASBP_3, htn_rx_preg !=1) # PAST/CURRENT USE OF BP MEDICATION (N = 9)
+
+```
+
+```{r}
+##### CHECK FOR DUPLICATE IDS IN THE 2 DATASETS CREATED FOR ANALYSIS
+sum(duplicated(PFASBP_4$familyid)) # 13 DUPLICATE FAMILY IDs
+
+# DROP THE SECOND DUPLICATE
+DUPS <- PFASBP_4[duplicated(PFASBP_4$familyid),]
+
+PFASBP_4 <- PFASBP_4[order(familyid),]
+PFASBP_5 <- PFASBP_4[!duplicated(PFASBP_4$familyid),]
+
+```
+
+```{r}
+##### DROP UNNECESSARY VARIABLES
+PFASBP_5 <- subset(PFASBP_5, select = -c(htn_rx_preg, t1diab_mom_epi_epia_d, t2diab_mom_epi_epia_d,
+                                         highbp_mom_epi_epia_d, familyid))
+
+##### SAVE DATASET
+write.csv(PFASBP_5, "C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/PFASBP_W.csv", row.names = T)
+write_sas(PFASBP_5, "C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/PFASBP_W.sas7bdat")
+# THE "W" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS IN "WIDE" FORMAT
+
+```

@@ -1,25 +1,60 @@
-#####                                                         #####
-##### CLEAN PFAS-BP DATA SET AND ENFORCE ELIGIBILITY CRITERIA #####
-#####                                                         #####
+#####                                                 #####
+##### CLEAN DATA SET AND ENFORCE ELIGIBILITY CRITERIA #####
+#####                                                 #####
 
 ```{r}
 ##### LOAD PACKAGES
 library("sas7bdat")
 library("haven")
 library("data.table")
+library("dplyr")
 
 ##### LOAD DATASET
-PFAS <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/ja_080622.sas7bdat")
-BP <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/mage.sas7bdat")
+PFAS <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_030823.sas7bdat")
 
-##### MERGE DATASETS
-PFASBP <- merge(BP, PFAS, by = "aid")
+```
+
+```{r}
+##### REPLACE MISSING VALUES AND BLANK SPACES WITH "NA"
+PFAS <- PFAS %>% mutate_all(~ifelse(is.nan(.), NA, .))
+PFAS[PFAS == ""] <- NA
+
+```
+
+```{r}
+##### DETERMINE PFAS MISSINGNESS
+summary(PFAS$PFOS)
+summary(PFAS$PFOA)
+summary(PFAS$PFOSA)
+summary(PFAS$PFNA2)
+summary(PFAS$PFHxS)
+summary(PFAS$PFDeA)
+summary(PFAS$Me_PFOSA_AcOH2)
+summary(PFAS$Et_PFOSA_AcOH) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH PFAS (N = 483)
+
+##### DETERMINE OUTCOME MISSINGNESS
+summary(PFAS$mom_bmi_MT) # 1424 MISSING
+summary(PFAS$mom_waist_ma17) # 1419 MISSING
+summary(PFAS$mom_hip_ma17) # 1420 MISSING
+summary(PFAS$mom_muac_ma17) # 1420 MISSING
+
+```
+
+```{r}
+##### CHECK FOR DUPLICATE IDS IN THE DATASET
+sum(duplicated(PFAS$familyid)) # 28 DUPLICATES
+
+# DROP THE SECOND DUPLICATE
+DUPS <- PFAS[duplicated(PFAS$familyid),]
+
+PFAS <- PFAS[order(PFAS$familyid),]
+PFAS <- PFAS[!duplicated(PFAS$familyid),]
 
 ```
 
 ```{r}
 ##### DROP BP MEASURES TAKEN DURING THE FIRST TRIMESTER
-PFASBP <- subset(PFASBP, ga_days >83) # 3943 1ST TRIMESTER MEASURES DROPPED
+PFAS <- subset(PFAS, ga_days >83) # 3943 1ST TRIMESTER MEASURES DROPPED
 
 ##### ADD A "COUNT" VARIABLE TO TELL US HOW MANY BP MEASURES EACH PERSON HAS
 setDT(PFASBP)[, count := uniqueN(ga_days), by = aid]
@@ -96,8 +131,8 @@ PFASBP_5 <- subset(PFASBP_5, select = -c(htn_rx_preg, t1diab_mom_epi_epia_d, t2d
                                          highbp_mom_epi_epia_d, familyid))
 
 ##### SAVE DATASET
-write.csv(PFASBP_5, "C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/PFASBP_W.csv", row.names = T)
-write_sas(PFASBP_5, "C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/PFASBP_W.sas7bdat")
+write.csv(PFASBP_5, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFASBP_W.csv", row.names = T)
+write_sas(PFASBP_5, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFASBP_W.sas7bdat")
 # THE "W" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS IN "WIDE" FORMAT
 
 ```

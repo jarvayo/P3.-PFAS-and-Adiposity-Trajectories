@@ -8,224 +8,160 @@ library("nlme")
 library("sitar")
 library("data.table")
 library("ggplot2")
+library("tidyr")
 
+```
+
+```{r}
 ##### LOAD DATASET
-PFAS <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/PFASBP_L.csv")
+PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
 
 ##### LOAD WORKSPACE
-load("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/P1_SITAR.Rdata")
+load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
 
 ```
 
 ```{r}
-##### COUNT NUMBER OF DUPLICATED IDs FOR DAYS AND WEEKS OF GESTATIONAL AGE
-setDT(PFAS)[, count_wc := uniqueN(ga_w), by = aid]
+##### SUBSET ONLY VARIABLES NEEDED FOR SITAR
+SITAR <- subset(PFAS, select = c(aid, DPP_RAV1, DPP_RAV2, DPP_RAV3, DPP_RAV4, AGE_RAV1, 
+                                      AGE_RAV2, AGE_RAV3, AGE_RAV4, WT_RAV1, WT_RAV2, WT_RAV3, WT_RAV4)) 
 
-##### FREQUENCY OF BP MEASUREMENTS AVAILABLE PER VARIOUS TIME SCALES (DAYS/WEEKS)
-hist(PFAS$ga_days, main="Number of BP Measures per Day of Gestation",
-     xlab="Day of Gestation", 
-     ylab = "Total BP Measurements",
-     col="grey", freq=TRUE)
-summary(PFAS$ga_days)
-summary(PFAS$count)
+##### CONVERT DATASET FROM WIDE TO LONG FORMAT
+SITAR$aid <- as.factor(SITAR$aid)
 
-hist(PFAS$ga_w, main="Total number of BP Measurements per Week of Gestation",
-     xlab = "Week of Gestation", 
-     ylab = "Total BP Measurements",
-     col = "grey", freq=TRUE)
-summary(PFAS$ga_w)
-summary(PFAS$count_wc)
+# BY DAYS post index pregnancy
+SITAR_DPP <- gather(SITAR, DPP, WEIGHT, WT_RAV1:WT_RAV4, factor_key=TRUE)
+SITAR_DPP <- SITAR_DPP[order(SITAR_DPP$aid),]
+SITAR_DPP$DPP <- ifelse(SITAR_DPP$DPP == "WT_RAV1", SITAR_DPP$DPP_RAV1,
+                         ifelse(SITAR_DPP$DPP == "WT_RAV2", SITAR_DPP$DPP_RAV2,
+                                ifelse(SITAR_DPP$DPP == "WT_RAV3", SITAR_DPP$DPP_RAV3,
+                                       ifelse(SITAR_DPP$DPP == "WT_RAV4", SITAR_DPP$DPP_RAV4, NA))))
+SITAR_DPP <- subset(SITAR_DPP, select = c(aid, DPP, WEIGHT))
+SITAR_DPP <- na.omit(SITAR_DPP)
+
+# # BY AGE
+# SITAR_AGE <- gather(SITAR, AGE, WEIGHT, WT_RAV1:WT_RAV4, factor_key=TRUE)
+# SITAR_AGE <- SITAR_AGE[order(SITAR_AGE$aid),]
+# SITAR_AGE$AGE <- ifelse(SITAR_AGE$AGE == "WT_RAV1", SITAR_AGE$AGE_RAV1,
+#                          ifelse(SITAR_AGE$AGE == "WT_RAV2", SITAR_AGE$AGE_RAV2,
+#                                 ifelse(SITAR_AGE$AGE == "WT_RAV3", SITAR_AGE$AGE_RAV3,
+#                                        ifelse(SITAR_AGE$AGE == "WT_RAV4", SITAR_AGE$AGE_RAV4, NA))))
+# SITAR_AGE <- subset(SITAR_AGE, select = c(aid, AGE, WEIGHT))
+# SITAR_AGE <- na.omit(SITAR_AGE)
 
 ```
 
 ```{r}
-##### IDENTIFY OUTLIERS FOR SYSTOLIC BP
-outliers_sys <- velout(x=ga_w_sc, y=ga_w_sys, id=aid, data=PFAS, limit=3)
+##### CONVERT DAYS TO YEARS
+SITAR_DPP$DPP <- SITAR_DPP$DPP/365
+# SITAR_AGE$AGE <- SITAR_AGE$AGE/365 
 
-## SET 54 SYS OUTLIERS MISSING
-PFAS_SYS <- zapvelout(outliers_sys, icode=c(4,6))
-PFAS_SYS <- subset(PFAS_SYS, !is.na(PFAS_SYS$ga_w_sys))
+```
 
+```{r}
+##### IDENTIFY WEIGHT MEASUREMENT OUTLIERS
+outliers_dpp <- velout(x = DPP, y = WEIGHT, id = aid, data = SITAR_DPP, limit = 3)
 
-##### IDENTIFY OUTLIERS FOR DIASTOLIC BP
-outliers_dias <- velout(x=ga_w_sc, y=ga_w_dias, id=aid, data=PFAS, limit=3)
+## SET 115 WEIGHT OUTLIERS MISSING
+SIT_DPP <- zapvelout(outliers_dpp, icode = c(4, 6))
+SIT_DPP <- subset(SIT_DPP, !is.na(SIT_DPP$WEIGHT))
 
-## SET 108 DIAS OUTLIERS MISSING
-PFAS_DIAS <- zapvelout(outliers_dias, icode=c(4,6))
-PFAS_DIAS <- subset(PFAS_DIAS, !is.na(PFAS_DIAS$ga_w_dias))
+# outliers_age <- velout(x = AGE, y = WEIGHT, id = aid, data = SITAR_AGE, limit = 3)
+# 
+# ## SET 114 WEIGHT OUTLIERS MISSING
+# SIT_AGE <- zapvelout(outliers_age, icode = c(4, 6))
+# SIT_AGE <- subset(SIT_AGE, !is.na(SIT_AGE$WEIGHT))
 
 ```
 
 ```{r}
 ##### CHECK DEGREES OF FREEDOM
-dfset(ga_w_sc, ga_w_sys, PFAS_SYS, FUN=BIC) # DF = 2
-dfset(ga_w_sc, ga_w_dias, PFAS_DIAS, FUN=BIC) # DF = 2
-summary(PFAS_SYS$ga_w)
+# dfset(AGE, WEIGHT, SIT_AGE, FUN = BIC) # DF = 2
+dfset(DPP, WEIGHT, SIT_DPP, FUN = BIC) # DF = 1
 
 ```
 
 ```{r}
 ##### FIT SITAR MODEL
-# SYSTOLIC BP
-m1_sys_wc <- sitar(x=ga_w_sc, y=ga_w_sys, id=aid, df=2, data=PFAS_SYS, fixed='a', random='a+b+c') #Total pop.
-# DIASTOLIC BP
-m2_dias_wc <- sitar(x=ga_w_sc, y=ga_w_dias, id=aid, df=2, data=PFAS_DIAS, fixed='a', random='a+b+c') #Total pop.
+m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SIT_DPP, fixed='a+c', random='a+c')
 
 ##### SUMMARIES
-#print(m1_sys_wc)
-summary(m1_sys_wc)
-#print(m2_dias_wc))
-summary(m2_dias_wc)
+#print(m1_wt)
+summary(m1_wt)
 
 ```
 
 ```{r}
 ##### SAVE WORKSPACE FOR SITAR
-save(m1_sys_wc, m2_dias_wc, file="C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/P1_SITAR.Rdata")
-# load("C:/Users/jarva/Desktop/James-Todd Lab/PFASandBP/Data/P1_SITAR_1297.Rdata")
+save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
 
 ```
 
 ```{r}
 ##### RANDOM EFFECTS FOR SYSTOLIC AND DIASTOLIC BP
-#ranef(m1_sys_wc) # SITAR random effects for systolic BP
-#ranef(m2_dias_wc) # SITAR random effects for diastolic BP
+# ranef(m1_wt) # SITAR random effects
 
-# ATTACH THE RANDOM EFFECTS A AND C TO THE SYSTOLIC DATASET
-random_coef <- as.data.frame(m1_sys_wc$coefficients$random$id)
+# ATTACH THE RANDOM EFFECTS A AND C TO THE DATASET
+random_coef <- as.data.frame(m1_wt$coefficients$random$id)
 random_coef$aid <- as.numeric(rownames(random_coef))
-PFAS_SYS <- merge(PFAS_SYS, random_coef, by = "aid")
-fit_sys<-m1_sys_wc$fitted
+SIT_DPP <- merge(SIT_DPP, random_coef, by = "aid")
+fit_wt<-m1_wt$fitted
 
 # RENAME THE COLUMNS IN M1_wc$FITTED FROM "FIXED" AND "ID" TO "SYS FIXED EFFECTS" AND "SYS PREDICTED"
-colnames(fit_sys)<-c("Sys_Fixed_Effect","Sys_Predicted")
-PFAS_SYS_R <- cbind(PFAS_SYS,fit_sys)
-PFAS_SYS_R$a_sys <- PFAS_SYS_R$a
-PFAS_SYS_R$b_sys <- PFAS_SYS_R$b
-PFAS_SYS_R$c_sys <- PFAS_SYS_R$c
+colnames(fit_wt)<-c("WT_FixedEffect","WT_Predicted")
+SIT_DPP_R <- cbind(SIT_DPP,fit_wt)
+SIT_DPP_R$a_wt <- SIT_DPP_R$a
+SIT_DPP_R$c_wt <- SIT_DPP_R$c
 
 # ASSESS DISTRIBUTION OF RANDOM EFFECTS
-hist(PFAS_SYS_R$a_sys)
-hist(PFAS_SYS_R$c_sys)
-
-
-# ATTACH THE RANDOM EFFECTS A AND C TO THE DIASTOLIC DATASET
-random_coef2 <- as.data.frame(m2_dias_wc$coefficients$random$id)
-random_coef2$aid <- as.numeric(rownames(random_coef2))
-PFAS_DIAS <- merge(PFAS_DIAS, random_coef2, by = "aid")
-fit_dias<-m2_dias_wc$fitted
-
-# RENAME THE COLUMNS IN M1_wc$FITTED FROM "FIXED" AND "ID" TO "DIAS FIXED EFFECTS" AND "DIAS PREDICTED"
-colnames(fit_dias)<-c("Dias_Fixed_Effect","Dias_Predicted")
-PFAS_DIAS_R <- cbind(PFAS_DIAS,fit_dias)
-PFAS_DIAS_R$a_dias <- PFAS_DIAS_R$a
-PFAS_DIAS_R$b_dias <- PFAS_DIAS_R$b
-PFAS_DIAS_R$c_dias <- PFAS_DIAS_R$c
-
-# ASSESS DISTRIBUTION OF RANDOM EFFECTS
-hist(PFAS_DIAS_R$a_dias)
-hist(PFAS_DIAS_R$c_dias)
+hist(SIT_DPP_R$a_wt)
+hist(SIT_DPP_R$c_wt)
 
 ```
 
 ```{r}
-##### ADJUSTED PFAS PLOTS FOR SYSTOLIC BP
-#par(mfrow=c(3,2))
-mplot(x = ga_w_sc, y = ga_w_sys, id = aid, col = aid, data = PFAS_SYS,
-      ylim = c(72, 185), xlim = c(-20, 20), las = 1, cex.lab = 1.5, cex.axis = 1.5,
-      ylab = "SBP (mmHg)", xlab = "Gestational age (weeks)",
-      main = "Undjusted SBP Trajectories")
+##### UNADJUSTED AND ADJUSTED PFAS PLOTS
+mplot(x = DPP, y = WEIGHT, id = aid, col = aid, data = SIT_DPP,
+      las = 1, cex.lab = 1.5, cex.axis = 1.5, 
+      ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
+      main = "Undjusted Weight Trajectories")
 
-plot(m1_sys_wc, opt = 'a', las = 1, cex.lab = 1.5, cex.axis = 1.5,
-     col = aid, ylim = c(72, 185), xlim = c(-20, 20),
-     ylab = "SBP (mmHg)", xlab = "Gestational age (weeks)", 
-     main = "Adjusted SBP Trajectories")
-
-
-##### ADJUSTED PFAS PLOTS FOR DIASTOLIC BP
-#par(mfrow=c(3,2))
-mplot(x = ga_w_sc, y = ga_w_dias, id = aid, col = aid, data = PFAS_DIAS,
-      las = 1, ylim = c(30, 110), xlim = c(-20, 20), cex.lab = 1.5, cex.axis = 1.5,
-      ylab = "DBP (mmHg)", xlab = "Gestational age (weeks)",
-      main = "Undjusted DBP Trajectories")
-
-plot(m2_dias_wc, opt = 'a', las = 1, cex.lab = 1.5, cex.axis = 1.5,
-     col = aid, ylim = c(30, 110), xlim=c(-20, 20),
-     ylab = "DBP (mmHg)", xlab = "Gestational age (weeks)",
-     main = "Adjusted DBP Trajectories")
+plot(m1_wt, opt = 'a', las = 1, cex.lab = 1.5, cex.axis = 1.5, col = aid, 
+     ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
+     main = "Adjusted Weight Trajectories")
 
 ```
 
 ```{r}
 ##### SITAR MEAN SYSTOLIC BP TRAJECTORY AND MEAN TRAJECTORY VELOCITY PLOTS
-
-#par(mfrow=c(2,2))
-
-plot(m1_sys_wc, opt = 'dv', las = 1, col = "deepskyblue3", lwd = 3, ylim = c(106, 122), xlim=c(-20, 20),
-     ylab="SBP (mmHg)", xlab="Gestational age (weeks)",
-     main="Mean SBP Trajectory and Mean Trajectory Velocity", cex.axis = 1, cex.lab = 1)
-legend('topleft', legend = c("SBP (mmHg)", "SBP velocity (mmHg/week)"), 
-       text.col = c("deepskyblue3", "navyblue"),lty=1:5, col = c("deepskyblue3", "navyblue"), cex = 1, inset=0.04)
-
-plot(m1_sys_wc, opt = 'd', las = 1, col = "deepskyblue3", lwd = 3, lty = 1, ylim = c(106, 122), xlim=c(-20, 20),
-     ylab="SBP (mmHg)", xlab="Gestational age (weeks)",
-     main="Mean SBP Trajectory and Mean Trajectory Velocity", cex.axis = 1, cex.lab = 1)
-
-
-par(new = T)
-plot(m1_sys_wc, opt = 'v', xlab = '', ylab = '', las = 1, col = "navyblue", lwd = 3, lty = 5, axes = FALSE, 
-     cex.axis = 1, cex.lab = 1, bty = "n")
-axis(side = 4, las = 1)
-mtext("SBP velocity (mmHg/week)", side = 4, line = 3)
-legend('topleft', legend = c("SBP (mmHg)", "SBP velocity (mmHg/week)"), 
+plot(m1_wt, opt = 'dv', las = 1, col = "deepskyblue3", lwd = 3, 
+     ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
+     main = "Mean Weight Trajectory and Mean Weight Trajectory Velocity", cex.axis = 1, cex.lab = 1)
+legend('topleft', legend = c("Weight (kg)", "Weight velocity (kg/year)"), 
        text.col = c("deepskyblue3", "navyblue"),lty=1:5, col = c("deepskyblue3", "navyblue"), cex = 1, inset=0.04)
 
 
-
-##### SITAR MEAN DIASTOLIC BP TRAJECTORY AND MEAN TRAJECTORY VELOCITY PLOTS
-
-#par(mfrow=c(2,2))
-
-plot(m2_dias_wc, opt = 'dv', las = 1, col = "red1", lwd = 3, ylim = c(62, 78), xlim=c(-20, 20),
-     ylab="DBP (mmHg)", xlab="Gestational age (weeks)",
-     main="Mean DBP Trajectory and Mean Trajectory Velocity", cex.axis = 1, cex.lab = 1)
-legend('topleft', legend = c("DBP (mmHg)", "DBP velocity (mmHg/week)"), 
-       text.col = c("red1", "darkred"),lty=1:5, col = c("red1", "darkred"), cex = 1, inset=0.04)
-
-plot(m2_dias_wc, opt = 'd', las = 1, col = "red1", lwd = 3, lty = 1, ylim = c(62, 78), xlim=c(-20, 20),
-     ylab="DBP (mmHg)", xlab="Gestational age (weeks)",
-     main="Mean DBP Trajectory and Mean Trajectory Velocity", cex.axis = 1, cex.lab = 1)
-
-
+plot(m1_wt, opt = 'd', las = 1, col = "deepskyblue3", lwd = 3, lty = 1,
+     ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
+     main = "Mean Weight Trajectory and Mean Weight Trajectory Velocity", cex.axis = 1, cex.lab = 1)
 par(new = T)
-plot(m2_dias_wc, opt = 'v', xlab = '', ylab = '', las = 1, col = "darkred", lwd = 3, lty = 5, axes = FALSE, 
+plot(m1_wt, opt = 'v', xlab = '', ylab = '', las = 1, col = "navyblue", lwd = 3, lty = 5, axes = FALSE, 
      cex.axis = 1, cex.lab = 1, bty = "n")
 axis(side = 4, las = 1)
-mtext("DBP velocity (mmHg/week)", side = 4, line = 3)
-legend('topleft', legend = c("DBP (mmHg)", "DBP velocity (mmHg/week)"), 
-       text.col = c("red1", "darkred"),lty=1:5, col = c("red1", "darkred"), cex = 1, inset=0.04)
+mtext("Weight velocity (kg/year)", side = 4, line = 3)
+legend('topleft', legend = c("Weight (kg)", "Weight velocity (kg/year)"), 
+       text.col = c("deepskyblue3", "navyblue"),lty=1:5, col = c("deepskyblue3", "navyblue"), cex = 1, inset=0.04)
 
 ```
 
 ```{r}
-##### SITAR MEAN SYSTOLIC BP TRAJECTORY AND 95% CI
-plot(m1_sys_wc, opt = 'd', las = 1, apv = F, ylab = "Systolic blood pressure (mmHg)", xlab = "Gestational age (weeks)", 
-     ylim = c(90, 140), y2par = list(lwd = 2), lwd = 2.5, main="Mean SBP Trajectory (95% CI)")
-lines(m1_sys_wc, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
-      apv = F, lwd = 2, lty = 2, col = 'deeppink', abc=(sqrt(diag(getVarCov(m1_sys_wc)))*1.96))
-lines(m1_sys_wc, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
-      apv = F, lwd = 2, lty = 2, col = 'deeppink', abc=(sqrt(diag(getVarCov(m1_sys_wc)))*-1.96))
-# legend("topleft", c( "Mean change trajectory", "Upper 95% CI", "Lower 95% CI"),
-#        col = c("black", "deeppink", "turquoise3"), lty = c(1, 2, 2))
-
-
-##### SITAR MEAN DIASTOLIC BP TRAJECTORY AND 95% CI
-plot(m2_dias_wc, opt = 'd', las = 1, apv = F, ylab = "Diastolic blood pressure (mmHg)", xlab = "Gestational age (weeks)", 
-     ylim = c(57, 85), y2par = list(lwd = 2), lwd=2, main="Mean DBP Trajectory (95% CI)")
-lines(m2_dias_wc, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
-      apv = F, lwd = 2, lty = 2, col = 'deeppink', abc = (sqrt(diag(getVarCov(m2_dias_wc)))*1.96))
-lines(m2_dias_wc, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
-      apv = F, lwd = 2, lty = 2, col = 'deeppink', abc = (sqrt(diag(getVarCov(m2_dias_wc)))*-1.96))
+##### SITAR MEAN WEIGHT TRAJECTORY AND 95% CI
+plot(m1_wt, opt = 'd', las = 1, apv = F, ylab = "Weight (kg)", xlab = "Time post index pregnanacy (years)", 
+     ylim = c(30, 140), y2par = list(lwd = 2), lwd = 2.5, main = "Mean Weight Trajectory (95% CI)")
+lines(m1_wt, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
+      apv = F, lwd = 2, lty = 2, col = 'deeppink', abc=(sqrt(diag(getVarCov(m1_wt)))*1.96))
+lines(m1_wt, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
+      apv = F, lwd = 2, lty = 2, col = 'deeppink', abc=(sqrt(diag(getVarCov(m1_wt)))*-1.96))
 # legend("topleft", c( "Mean change trajectory", "Upper 95% CI", "Lower 95% CI"),
 #        col = c("black", "deeppink", "turquoise3"), lty = c(1, 2, 2))
 
@@ -233,48 +169,26 @@ lines(m2_dias_wc, opt = 'd', y2par = list(col = 'deeppink', lwd = 2),
 
 
 ```{r}
-##### GOODNESS OF FIT PLOT FOR SITAR MODELLING, SYSTOLIC BP
-plot(sys ~ ga_w_sc, data = PFAS_SYS_R, las=1, col="lightblue4", ylim=c(80,150),
-     ylab="SBP (mmHg)", xlab="Gestational age (weeks)",
-     main="Goodness of Fit Plot for SITAR Modeling, SBP")
-lines(m1_sys_wc, opt = 'D', lty = 1, col="darkturquoise")
-lines(m1_sys_wc, opt = 'd', lwd=2, lty = 2, col="red")
+##### GOODNESS OF FIT PLOT FOR SITAR MODELLING
+plot(WEIGHT ~ DPP, data = SIT_DPP_R, las = 1, col = "lightblue4", ylim = c(30,170),
+     ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
+     main = "Goodness of Fit Plot for SITAR Modeling")
+lines(m1_wt, opt = 'D', lty = 1, col="darkturquoise")
+lines(m1_wt, opt = 'd', lwd=2, lty = 2, col="red")
 legend('bottomright', c('Observed', 'Fitted trajectory', 'SITAR mean trajectory'),
        lty = c(NA, 1, 2), pch=c(1,NA,NA), col = c("lightblue4", "turquoise4", "red"), cex = 0.8, inset=0.04) 
 
-
-##### GOODNESS OF FIT PLOT FOR SITAR MODELLING, DIASTOLIC BP
-plot(dias ~ ga_w_sc, data = PFAS_DIAS_R, las=1, col="lightblue4", ylim=c(40,100),
-     ylab="DBP (mmHg)", xlab="Gestational age (weeks)",
-     main="Goodness of Fit Plot for SITAR Modeling, DBP")
-lines(m2_dias_wc, opt = 'D', lty = 1, col="darkturquoise")
-lines(m2_dias_wc, opt = 'd', lwd=2, lty = 2, col="red")
-legend('bottomright', c('Observed', 'Fitted trajectory', 'SITAR mean trajectory'),
-       lty = c(NA, 1, 2), pch=c(1,NA,NA), col = c("lightblue4", "turquoise4", "red"), cex = 0.8, inset=0.04)
-
 ```
 
 ```{r}
+##### ADD A "DUP" VARIABLE TO COUNT NUMBER OF DUPLICATED IDs
+SIT_DPP_R$dup_num <- length(unique(SIT_DPP_R$DPP)) == nrow(SIT_DPP_R)
+SIT_DPP_R$dup_num <- sequence(table(SIT_DPP_R$aid))
+
 ##### SAVE DATASET
-PFAS_SYS_SITAR <- subset(PFAS_SYS_R, dup_num == 1)
-PFAS_SYS_SITAR <- subset(PFAS_SYS_SITAR, select = c(aid, a_sys,c_sys, ga_days, ga_days_c, ga_w, ga_w_sc, ga_w_sys,
-                                                    PFOS, PFOA, PFNA2, PFHxS, Me_PFOSA_AcOH2, Et_PFOSA_AcOH, mom_agey_bp,
-                                                    mom_firstperiod_12y, bmi_mom_prepreg_d, race2_mom_epi_epia_d,
-                                                    income_hh_epq_epqa_d, gt70k, parity_d, smokpreg_final_d, coll_grad,
-                                                    mod_pre_d, vig_pre_d, alc_d_f1, alc_d_bef_learn_f1, alc_d_aft_learn_f1,  
-                                                    dup_num, count))
+SIT_DPP_R <- subset(SIT_DPP_R, dup_num == 1)
+SIT_DPP_R <- subset(SIT_DPP_R, select = c(aid, a_wt,c_wt))
 
-
-PFAS_DIAS_SITAR <- subset(PFAS_DIAS_R, dup_num == 1)
-PFAS_DIAS_SITAR <- subset(PFAS_DIAS_SITAR, select = c(aid, a_dias, c_dias, ga_days, ga_days_c, ga_w, ga_w_sc, ga_w_dias,
-                                                      PFOS, PFOA, PFNA2, PFHxS, Me_PFOSA_AcOH2, Et_PFOSA_AcOH, mom_agey_bp,
-                                                      mom_firstperiod_12y, bmi_mom_prepreg_d, race2_mom_epi_epia_d,
-                                                      income_hh_epq_epqa_d, gt70k, parity_d, smokpreg_final_d, coll_grad,
-                                                      mod_pre_d, vig_pre_d, alc_d_f1, alc_d_bef_learn_f1, alc_d_aft_learn_f1,  
-                                                      dup_num, count))
-
-
-write.csv(PFAS_SYS_SITAR, file = "C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/PFAS_SYS_SITAR.csv", row.names = T)
-write.csv(PFAS_DIAS_SITAR, file = "C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/PFAS_DIAS_SITAR.csv", row.names = T)
+write.csv(SIT_DPP_R, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.csv", row.names = T)
 
 ```

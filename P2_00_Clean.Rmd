@@ -241,14 +241,32 @@ PFAS_3 <- subset(PFAS_2, RAWT_AVAIL == 1) # MISSING RA-MEASURED WEIGHT MEASURES
 ```
 
 ```{r}
+##### CREATE A DATASET OF INDIVIDUALS EXCLUDED FROM THE MAIN ANALYSIS (I.E., "PFAS_X")
+PFAS_3$include <- 1+0
+PFAS_X <- merge(PFAS, PFAS_3, by = "aid", all.x = TRUE)
+PFAS_X <- subset(PFAS_X, is.na(include))
+
+colnames(PFAS_X)<-gsub(".y","",colnames(PFAS_X))
+colnames(PFAS_X)<-gsub(".x","",colnames(PFAS_X))
+
+```
+
+```{r}
 ##### DROP UNNECESSARY VARIABLES
 PFAS_3 <- subset(PFAS_3, select = -c(WEIGHLBKG_9y, WEIGHLBKG_10y, c_age_days_COMP_D_SMI, c_age_days_COMP_D_TYI,
                                      c_age_days_COMP_D_IN7Y, c_age_days_comp_d_in_12y, age_days_comp_d_qu17,
                                      PFOSA, PFDeA, pfdeaLOD, EMPL_EPQ, EMPLHRS_EPQ, NOTLOOK_EPQ, LOOKING_EPQ,
                                      STUDENT_EPQ, mod_pre_d, vig_pre_d, sthyroid_epi))
+PFAS_X <- subset(PFAS_X, select = c(aid, age_mom_enroll_d, bmi_mom_prepreg_d, coll_grad, gt70k, mom_firstperiod_1,
+                                    married_cohab, pari_d, race2_mom_epi_epia_d, smokpreg_final_d))
 
 ##### SAVE DATASET
-write.csv(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv", row.names = T)
-write_sas(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.sas7bdat")
+write.csv(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.csv", row.names = T)
+write_sas(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.sas7bdat")
+# THE "CL" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS CLEAN
+
+write.csv(PFAS_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_X.csv", row.names = T)
+write_sas(PFAS_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_X.sas7bdat")
+# THE "X" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS COMPOSED OF EXCLUDED INDIVIDUALS
 
 ```

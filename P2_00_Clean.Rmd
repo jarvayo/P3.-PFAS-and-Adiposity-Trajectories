@@ -19,24 +19,48 @@ PFAS <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTra
 PFAS <- PFAS %>% mutate_all(~ifelse(is.nan(.), NA, .))
 PFAS[PFAS == ""] <- NA
 
-```
+##### REPLACE IMPLAUSIBLE VALUES WITH "NA"
+PFAS$WEIGHLBS_OYQ <- ifelse(PFAS$WEIGHLBS_OYQ < 0, NA, PFAS$WEIGHLBS_OYQ)
+PFAS$WEIGHKGS_OYQ <- ifelse(PFAS$WEIGHKGS_OYQ < 0, NA, PFAS$WEIGHKGS_OYQ)
+PFAS$WEIGHLBS_SYQ <- ifelse(PFAS$WEIGHLBS_SYQ < 0, NA, PFAS$WEIGHLBS_SYQ)
+PFAS$WEIGHKGS_SYQ <- ifelse(PFAS$WEIGHKGS_SYQ < 0, NA, PFAS$WEIGHKGS_SYQ)
+PFAS$WEIGHLBS_4YQ <- ifelse(PFAS$WEIGHLBS_4YQ < 0, NA, PFAS$WEIGHLBS_4YQ)
+PFAS$WEIGHKGS_4YQ <- ifelse(PFAS$WEIGHKGS_4YQ < 0, NA, PFAS$WEIGHKGS_4YQ)
+PFAS$WEIGHLBS_QU5Y <- ifelse(PFAS$WEIGHLBS_QU5Y < 0, NA, PFAS$WEIGHLBS_QU5Y)
+PFAS$WEIGHKGS_QU5Y <- ifelse(PFAS$WEIGHKGS_QU5Y < 0, NA, PFAS$WEIGHKGS_QU5Y)
+PFAS$WEIGHLBS_QU6Y <- ifelse(PFAS$WEIGHLBS_QU6Y < 0, NA, PFAS$WEIGHLBS_QU6Y)
+PFAS$WEIGHKGS_QU6Y <- ifelse(PFAS$WEIGHKGS_QU6Y < 0, NA, PFAS$WEIGHKGS_QU6Y)
+PFAS$WEIGHLBS_8y <- ifelse(PFAS$WEIGHLBS_8y < 0, NA, PFAS$WEIGHLBS_8y)
+PFAS$WEIGHKG_8y <- ifelse(PFAS$WEIGHKG_8y < 0, NA, PFAS$WEIGHKG_8y)
+PFAS$WEIGH_9y <- ifelse(PFAS$WEIGH_9y < 0, NA, PFAS$WEIGH_9y)
+PFAS$WEIGHT_9y <- ifelse(PFAS$WEIGHT_9y < 0, NA, PFAS$WEIGHT_9y)
+PFAS$WEIGH_10y <- ifelse(PFAS$WEIGH_10y < 0, NA, PFAS$WEIGH_10y)
+PFAS$WEIGHT_10y <- ifelse(PFAS$WEIGHT_10y < 0, NA, PFAS$WEIGHT_10y)
+PFAS$mweight_11y <- ifelse(PFAS$mweight_11y < 0, NA, PFAS$mweight_11y)
 
-```{r}
-##### DETERMINE PFAS MISSINGNESS
-summary(PFAS$PFOS)
-summary(PFAS$PFOA)
-summary(PFAS$PFOSA)
-summary(PFAS$PFNA2)
-summary(PFAS$PFHxS)
-summary(PFAS$PFDeA)
-summary(PFAS$Me_PFOSA_AcOH2)
-summary(PFAS$Et_PFOSA_AcOH) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH PFAS (N = 483)
-
-##### DETERMINE OUTCOME MISSINGNESS
-summary(PFAS$mom_bmi_MT) # 1424 MISSING
-summary(PFAS$mom_waist_ma17) # 1419 MISSING
-summary(PFAS$mom_hip_ma17) # 1420 MISSING
-summary(PFAS$mom_muac_ma17) # 1420 MISSING
+summary(PFAS$WEIGHLBS_OYQ)
+summary(PFAS$WEIGHKGS_OYQ)
+summary(PFAS$WEIGHLBS_SYQ)
+summary(PFAS$WEIGHKGS_SYQ)
+summary(PFAS$WEIGHLBS_4YQ)
+summary(PFAS$WEIGHKGS_4YQ)
+summary(PFAS$WEIGHLBS_QU5Y)
+summary(PFAS$WEIGHKGS_QU5Y)
+summary(PFAS$WEIGHLBS_QU6Y)
+summary(PFAS$WEIGHKGS_QU6Y)
+summary(PFAS$WEIGHLBS_8y)
+summary(PFAS$WEIGHKG_8y)
+summary(PFAS$WEIGH_9y)
+summary(PFAS$WEIGHT_9y)
+summary(PFAS$WEIGH_10y)
+summary(PFAS$WEIGHT_10y)
+summary(PFAS$mweight_11y)
+summary(PFAS$mom_weight_lbs_qu14)
+summary(PFAS$mom_weight_kg_qu14)
+summary(PFAS$mom_weight_lbs_qu15)
+summary(PFAS$mom_weight_kg_qu15)
+summary(PFAS$mom_weight_lbs_qu16)
+summary(PFAS$mom_weight_kg_qu16)
 
 ```
 
@@ -51,88 +75,180 @@ PFAS <- PFAS[order(PFAS$familyid),]
 PFAS <- PFAS[!duplicated(PFAS$familyid),]
 
 ```
+```{r}
+##### RENAME VARIABLES
+# PFAS AND LOD
+colnames(PFAS)[colnames(PFAS) == "Me_PFOSA_AcOH2"] <- "MeFOSAA"
+colnames(PFAS)[colnames(PFAS) == "Et_PFOSA_AcOH"] <- "EtFOSAA"
+colnames(PFAS)[colnames(PFAS) == "PFNA2"] <- "PFNA"
+colnames(PFAS)[colnames(PFAS) == "PFOSLOD"] <- "LOD_PFOS"
+colnames(PFAS)[colnames(PFAS) == "PFOALOD"] <- "LOD_PFOA"
+colnames(PFAS)[colnames(PFAS) == "pfna2LOD"] <- "LOD_PFNA"
+colnames(PFAS)[colnames(PFAS) == "pfhxsLOD"] <- "LOD_PFHxS"
+colnames(PFAS)[colnames(PFAS) == "mefosaaLOD"] <- "LOD_MeF"
+colnames(PFAS)[colnames(PFAS) == "etfosaaLOD"] <- "LOD_EtF"
+
+# DAYS POSTPARTUM AT WEIGHT MEASUREMENT (RESEARCH ASSISTANT MEASURED)
+colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_MSM"] <- "DPP_RAV1"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_MAT"] <- "DPP_RAV2"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_MA7Y"] <- "DPP_RAV3"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_comp_d_ma_12y"] <- "DPP_RAV4"
+
+# AGE AT WEIGHT MEASUREMENT (RESEARCH ASSISTANT MEASURED)
+colnames(PFAS)[colnames(PFAS) == "m_age_days_COMP_D_MSM"] <- "AGE_RAV1"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_COMP_D_MAT"] <- "AGE_RAV2"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_COMP_D_MA7Y"] <- "AGE_RAV3"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_comp_d_ma_12y"] <- "AGE_RAV4"
+
+# WEIGHT MEASUREMENT (RESEARCH ASSISTANT MEASURED, KG)
+colnames(PFAS)[colnames(PFAS) == "weight_k_msm"] <- "WT_RAV1"
+colnames(PFAS)[colnames(PFAS) == "MWEIGHT_MAT"] <- "WT_RAV2"
+colnames(PFAS)[colnames(PFAS) == "MWEIGHT_MA7Y"] <- "WT_RAV3"
+colnames(PFAS)[colnames(PFAS) == "mom_weight_12y"] <- "WT_RAV4"
+
+# WEIGHT MEASUREMENT (SELF-REPORTED)
+colnames(PFAS)[colnames(PFAS) == "WEIGHLBS_OYQ"] <- "WTL_SR1"
+colnames(PFAS)[colnames(PFAS) == "WEIGHKGS_OYQ"] <- "WTK_SR1"
+colnames(PFAS)[colnames(PFAS) == "WEIGHLBS_SYQ"] <- "WTL_SRV2"
+colnames(PFAS)[colnames(PFAS) == "WEIGHKGS_SYQ"] <- "WTK_SRV2"
+colnames(PFAS)[colnames(PFAS) == "WEIGHLBS_4YQ"] <- "WTL_SRV4"
+colnames(PFAS)[colnames(PFAS) == "WEIGHKGS_4YQ"] <- "WTK_SRV4"
+colnames(PFAS)[colnames(PFAS) == "WEIGHLBS_QU5Y"] <- "WTL_SRV5"
+colnames(PFAS)[colnames(PFAS) == "WEIGHKGS_QU5Y"] <- "WTK_SRV5"
+colnames(PFAS)[colnames(PFAS) == "WEIGHLBS_QU6Y"] <- "WTL_SRV6"
+colnames(PFAS)[colnames(PFAS) == "WEIGHKGS_QU6Y"] <- "WTK_SRV6"
+colnames(PFAS)[colnames(PFAS) == "WEIGHLBS_8y"] <- "WTL_SRV8"
+colnames(PFAS)[colnames(PFAS) == "WEIGHKG_8y"] <- "WTK_SRV8"
+colnames(PFAS)[colnames(PFAS) == "WEIGH_9y"] <- "WTL_SRV9"
+colnames(PFAS)[colnames(PFAS) == "WEIGHT_9y"] <- "WTK_SRV9"
+colnames(PFAS)[colnames(PFAS) == "WEIGH_10y"] <- "WTL_SRV10"
+colnames(PFAS)[colnames(PFAS) == "WEIGHT_10y"] <- "WTK_SRV10"
+colnames(PFAS)[colnames(PFAS) == "mweight_11y mweighlbkg_11y "] <- "WTL_SRV11"
+colnames(PFAS)[colnames(PFAS) == "mom_weight_lbs_qu14"] <- "WTL_SRV14"
+colnames(PFAS)[colnames(PFAS) == "mom_weight_kg_qu14"] <- "WTK_SRV14"
+colnames(PFAS)[colnames(PFAS) == "mom_weight_lbs_qu15"] <- "WTL_SRV15"
+colnames(PFAS)[colnames(PFAS) == "mom_weight_kg_qu15"] <- "WTK_SRV15"
+colnames(PFAS)[colnames(PFAS) == "mom_weight_lbs_qu16"] <- "WTL_SRV16"
+colnames(PFAS)[colnames(PFAS) == "mom_weight_kg_qu16"] <- "WTK_SRV16"
+
+# PREGNANCY STATUS (RESEARCH ASSISTANT MEASURED)
+colnames(PFAS)[colnames(PFAS) == "PREGNANT_SMI"] <- "PREGHIST_RAV1"
+colnames(PFAS)[colnames(PFAS) == "STILL_PREGNANT_SMI"] <- "PREGSTAT_RAV1"
+colnames(PFAS)[colnames(PFAS) == "PREG_TYI"] <- "PREGHIST_RAV2"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_TYI"] <- "PREGSTAT_RAV2"
+colnames(PFAS)[colnames(PFAS) == "PREG_IN7Y"] <- "PREGHIST_RAV3"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_IN7Y"] <- "PREGSTAT_RAV3"
+colnames(PFAS)[colnames(PFAS) == "curr_preg_12y"] <- "PREGSTAT_RAV4"
+colnames(PFAS)[colnames(PFAS) == "pregnant_now_qu17"] <- "PREGHIST_RAV5"
+
+# PREGNANCY STATUS (RESEARCH ASSISTANT MEASURED)
+colnames(PFAS)[colnames(PFAS) == "PREG_OYQ"] <- "PREGHIST_SRV1"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_OYQ"] <- "PREGSTAT_SRV1"
+colnames(PFAS)[colnames(PFAS) == "PREG_SYQ"] <- "PREGHIST_SRV2"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_SYQ"] <- "PREGSTAT_SRV2"
+colnames(PFAS)[colnames(PFAS) == "PREG_4YQ"] <- "PREGHIST_SRV3"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_4YQ"] <- "PREGSTAT_SRV3"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_QU5Y"] <- "PREGSTAT_SRV4"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_QU6Y"] <- "PREGSTAT_SRV5"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_8Y"] <- "PREGSTAT_SRV6"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_9Y"] <- "PREGSTAT_SRV7"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_10Y"] <- "PREGSTAT_SRV8"
+colnames(PFAS)[colnames(PFAS) == "STLPREG_11Y"] <- "PREGSTAT_SRV9"
+colnames(PFAS)[colnames(PFAS) == "mom_pregnant_qu14"] <- "PREGSTAT_SRV10"
+colnames(PFAS)[colnames(PFAS) == "mom_pregnant_qu15"] <- "PREGSTAT_SRV11"
+colnames(PFAS)[colnames(PFAS) == "mom_pregnant_qu16"] <- "PREGSTAT_SRV12"
+
+# DAYS POSTPARTUM AT QUESTIONNAIRE(SELF-REPORTED)
+summary(PFAS$c_age_days_COMP_D_OYQ)
+summary(PFAS$c_age_days_COMP_D_SYQ)
+summary(PFAS$c_age_days_COMP_D_4YQ)
+summary(PFAS$c_age_days_COMP_D_QU5Y)
+summary(PFAS$c_age_days_COMP_D_QU6Y)
+summary(PFAS$c_age_days_comp_d_qu_8y)
+summary(PFAS$c_age_days_comp_d_qu_9y)
+summary(PFAS$c_age_days_comp_d_qu_10y)
+summary(PFAS$c_age_days_comp_d_qu_11y)
+summary(PFAS$child_age_days_qu14)
+summary(PFAS$child_age_days_qu15)
+summary(PFAS$child_age_days_qu16)
+
+colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_OYQ"] <- "DPP_SRV1"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_SYQ"] <- "DPP_SRV2"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_4YQ"] <- "DPP_SRV3"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_QU5Y"] <- "DPP_SRV4"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_QU6Y"] <- "DPP_SRV5"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_comp_d_qu_8y"] <- "DPP_SRV6"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_comp_d_qu_9y"] <- "DPP_SRV7"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_comp_d_qu_10y"] <- "DPP_SRV8"
+colnames(PFAS)[colnames(PFAS) == "c_age_days_comp_d_qu11y"] <- "DPP_SRV9"
+colnames(PFAS)[colnames(PFAS) == "child_age_days_qu14"] <- "DPP_SRV10"
+colnames(PFAS)[colnames(PFAS) == "child_age_days_qu15"] <- "DPP_SRV11"
+colnames(PFAS)[colnames(PFAS) == "child_age_days_qu16"] <- "DPP_SRV12"
+
+
+# AGE AT WEIGHT MEASUREMENT (SELF REPORTED)
+summary(PFAS$m_age_days_COMP_D_4YQ)
+summary(PFAS$m_age_days_COMP_D_QU5Y)
+summary(PFAS$m_age_days_COMP_D_QU6Y)
+summary(PFAS$m_age_days_comp_d_qu_8y)
+summary(PFAS$m_age_days_comp_d_qu_9y)
+summary(PFAS$m_age_days_comp_d_qu_10y)
+summary(PFAS$m_age_days_comp_d_qu_11y)
+summary(PFAS$m_age_days_qu14)
+summary(PFAS$m_age_days_qu15)
+summary(PFAS$m_age_days_qu16)
+
+colnames(PFAS)[colnames(PFAS) == "m_age_days_COMP_D_4YQ"] <- "AGE_SRV3"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_COMP_D_QU5Y"] <- "AGE_SRV4"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_COMP_D_QU6Y"] <- "AGE_SRV5"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_comp_d_qu_8y"] <- "AGE_SRV6"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_comp_d_qu_9y"] <- "AGE_SRV7"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_comp_d_qu_10y"] <- "AGE_SRV8"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_comp_d_qu11y"] <- "AGE_SRV9"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_qu14"] <- "AGE_SRV10"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_qu15"] <- "AGE_SRV11"
+colnames(PFAS)[colnames(PFAS) == "m_age_days_qu16"] <- "AGE_SRV12"
+
+```
 
 ```{r}
-##### DROP BP MEASURES TAKEN DURING THE FIRST TRIMESTER
-PFAS <- subset(PFAS, ga_days >83) # 3943 1ST TRIMESTER MEASURES DROPPED
+##### DETERMINE PFAS MISSINGNESS
+summary(PFAS$PFOS)
+summary(PFAS$PFOA)
+summary(PFAS$PFNA)
+summary(PFAS$PFHxS)
+summary(PFAS$MeFOSAA)
+summary(PFAS$EtFOSAA)
+summary(PFAS$PFOSA) 
+summary(PFAS$PFDeA) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH PFAS (N = 483)
 
-##### ADD A "COUNT" VARIABLE TO TELL US HOW MANY BP MEASURES EACH PERSON HAS
-setDT(PFASBP)[, count := uniqueN(ga_days), by = aid]
+```
 
-##### ADD A "DUP" VARIABLE TO COUNT NUMBER OF DUPLICATED IDs
-PFASBP$dup_num <- length(unique(PFASBP$ga_days)) == nrow(PFASBP)
-PFASBP$dup_num <- sequence(table(PFASBP$aid))
+```{r}
+##### CREATE INDICATOR VARIABLE TO DETERMINE # OF RA-MEASURED WEIGHT MEASURES
+PFAS$RAWT_AVAIL <- ifelse(is.na(PFAS$WT_RAV1) & is.na(PFAS$WT_RAV2) & is.na(PFAS$WT_RAV3) & is.na(PFAS$WT_RAV4), 0, 1)
+table(PFAS$RAWT_AVAIL)
 
-##### DROP INDIVIDUALS WITH LESS THAN 2 BP MEASURES
-PFASBP <- subset(PFASBP, PFASBP$count >=2)
+```
 
-##### ONLY KEEP THE FIRST OBSERVATION PER UNIQUE AID
-PFASBP <- subset(PFASBP, dup_num == 1)
-
-##### SEE LIST OF VARIABLES
-#ls(PFASBP)
+```{r}
+##### EXCLUDE INELEGIBLE PARTICIPANTS 
+PFAS_1 <- subset(PFAS, !is.na(PFOS)) # MISSING PFAS DATA
+PFAS_2 <- subset(PFAS_1, t1diab_mom_epi_epia_d == 0 | is.na(t1diab_mom_epi_epia_d)) # HISTORY OF T1 DIABETES
+PFAS_2 <- subset(PFAS_2, t2diab_mom_epi_epia_d == 0 | is.na(t2diab_mom_epi_epia_d)) # HISTORY OF T2 DIABETES
+PFAS_3 <- subset(PFAS_2, RAWT_AVAIL == 1) # MISSING RA-MEASURED WEIGHT MEASURES 
 
 ```
 
 ```{r}
 ##### DROP UNNECESSARY VARIABLES
-PFASBP_0 <- subset(PFASBP, select = c(familyid, aid, ga_days, mom_agey_bp, g_age_days_COLL_D_BLD1, sys,  
-                                      dias, PFOS, PFOA, PFNA2, PFHxS, Me_PFOSA_AcOH2, Et_PFOSA_AcOH,
-                                      bmi_mom_prepreg_d, race2_mom_epi_epia_d,parity_d, coll_grad, 
-                                      gt70k, income_hh_epq_epqa_d, htn_rx_preg, t1diab_mom_epi_epia_d, 
-                                      t2diab_mom_epi_epia_d, highbp_mom_epi_epia_d,mod_pre_d, 
-                                      vig_pre_d, smokpreg_final_d,alc_d_f1,alc_d_bef_learn_f1, 
-                                      alc_d_aft_learn_f1, mom_firstperiod_12y, count))
-
-```
-
-```{r}
-##### DETERMINE PFAS-BP MISSINGNESS
-summary(PFASBP_0$PFOS)
-summary(PFASBP_0$PFOA)
-summary(PFASBP_0$PFOSA)
-summary(PFASBP_0$PFNA2)
-summary(PFASBP_0$PFHxS)
-summary(PFASBP_0$PFDeA)
-summary(PFASBP_0$Me_PFOSA_AcOH2)
-summary(PFASBP_0$Et_PFOSA_AcOH) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH PFASBP (N = 482)
-
-##### EXCLUDE INELEGIBLE PARTICIPANTS
-PFASBP_1 <- subset(PFASBP_0, !is.na(PFOS)) # MISSING PFASBP DATA (N = 482)
-PFASBP_1 <- subset(PFASBP_1, g_age_days_COLL_D_BLD1 <= 84) # MISSING 1ST TRIMESTER PFAS DATA (N = 221)
-
-table(PFASBP_1$highbp_mom_epi_epia_d)
-PFASBP_2 <- subset(PFASBP_1, highbp_mom_epi_epia_d != 1) # HISTORY OF HYPERTENSION (N = 88)
-
-table(PFASBP_2$t1diab_mom_epi_epia_d)
-table(PFASBP_2$t2diab_mom_epi_epia_d)
-PFASBP_3 <- subset(PFASBP_2, t1diab_mom_epi_epia_d != 1 & t2diab_mom_epi_epia_d != 1) # HISTORY OF DIABETES (N = 10)
-
-table(PFASBP_3$htn_rx_preg)
-PFASBP_4 <- subset(PFASBP_3, htn_rx_preg !=1) # PAST/CURRENT USE OF BP MEDICATION (N = 9)
-
-```
-
-```{r}
-##### CHECK FOR DUPLICATE IDS IN THE 2 DATASETS CREATED FOR ANALYSIS
-sum(duplicated(PFASBP_4$familyid)) # 13 DUPLICATE FAMILY IDs
-
-# DROP THE SECOND DUPLICATE
-DUPS <- PFASBP_4[duplicated(PFASBP_4$familyid),]
-
-PFASBP_4 <- PFASBP_4[order(familyid),]
-PFASBP_5 <- PFASBP_4[!duplicated(PFASBP_4$familyid),]
-
-```
-
-```{r}
-##### DROP UNNECESSARY VARIABLES
-PFASBP_5 <- subset(PFASBP_5, select = -c(htn_rx_preg, t1diab_mom_epi_epia_d, t2diab_mom_epi_epia_d,
-                                         highbp_mom_epi_epia_d, familyid))
+PFAS_3 <- subset(PFAS_3, select = -c(WEIGHLBKG_9y, WEIGHLBKG_10y, c_age_days_COMP_D_SMI, c_age_days_COMP_D_TYI,
+                                     c_age_days_COMP_D_IN7Y, c_age_days_comp_d_in_12y, age_days_comp_d_qu17,
+                                     PFOSA, PFDeA, pfdeaLOD, EMPL_EPQ, EMPLHRS_EPQ, NOTLOOK_EPQ, LOOKING_EPQ,
+                                     STUDENT_EPQ, mod_pre_d, vig_pre_d, sthyroid_epi))
 
 ##### SAVE DATASET
-write.csv(PFASBP_5, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFASBP_W.csv", row.names = T)
-write_sas(PFASBP_5, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFASBP_W.sas7bdat")
-# THE "W" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS IN "WIDE" FORMAT
+write.csv(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv", row.names = T)
+write_sas(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.sas7bdat")
 
 ```

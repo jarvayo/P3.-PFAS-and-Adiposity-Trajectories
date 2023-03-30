@@ -52,13 +52,6 @@ SITAR_DPP <- na.omit(SITAR_DPP)
 ```
 
 ```{r}
-##### CONVERT DAYS TO YEARS
-SITAR_DPP$DPP <- SITAR_DPP$DPP/365
-# SITAR_AGE$AGE <- SITAR_AGE$AGE/365 
-
-```
-
-```{r}
 ##### IDENTIFY WEIGHT MEASUREMENT OUTLIERS
 outliers_dpp <- velout(x = DPP, y = WEIGHT, id = aid, data = SITAR_DPP, limit = 3)
 

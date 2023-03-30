@@ -39,7 +39,7 @@ PFAS$L2EtFOSAA <- log(PFAS$EtFOSAA, 2)
 ```
 
 ```{r}
-##### DESCRIBE PFAS DISTRIBUTION, ANTHRO DATASET
+##### DESCRIBE PFAS DISTRIBUTION
 hist(PFAS$PFOS)
 hist(PFAS$PFOA)
 hist(PFAS$PFNA)
@@ -47,7 +47,7 @@ hist(PFAS$PFHxS)
 hist(PFAS$MeFOSAA)
 hist(PFAS$EtFOSAA)
 
-# DESCRIBE LNPFAS DISTRIBUTION, ANTHRO DATASET
+# DESCRIBE LNPFAS DISTRIBUTION
 hist(PFAS$LNPFOS)
 hist(PFAS$LNPFOA)
 hist(PFAS$LNPFNA)
@@ -55,7 +55,7 @@ hist(PFAS$LNPFHxS)
 hist(PFAS$LNMeFOSAA)
 hist(PFAS$LNEtFOSAA)
 
-# DESCRIBE L2PFAS DISTRIBUTION, ANTHRO DATASET
+# DESCRIBE L2PFAS DISTRIBUTION
 hist(PFAS$L2PFOS)
 hist(PFAS$L2PFOA)
 hist(PFAS$L2PFNA)
@@ -66,7 +66,23 @@ hist(PFAS$L2EtFOSAA)
 ```
 
 ```{r}
-##### DESCRIBE DISTRIBUTION OF OUTCOME MEASURES, ANTHRO DATASET
+##### CONVERT DAYS TO YEARS
+# DAYS POSTPARTUM
+PFAS$DPP_RAV1 <- PFAS$DPP_RAV1/365
+PFAS$DPP_RAV2 <- PFAS$DPP_RAV2/365
+PFAS$DPP_RAV3 <- PFAS$DPP_RAV3/365
+PFAS$DPP_RAV4 <- PFAS$DPP_RAV4/365
+
+# AGE AT WEIGHT MEASUREMENTS
+PFAS$AGE_RAV1 <- PFAS$AGE_RAV1/365 
+PFAS$AGE_RAV2 <- PFAS$AGE_RAV2/365 
+PFAS$AGE_RAV3 <- PFAS$AGE_RAV3/365 
+PFAS$AGE_RAV4 <- PFAS$AGE_RAV3/365 
+
+```
+
+```{r}
+##### DESCRIBE DISTRIBUTION OF OUTCOME MEASURES
 hist(PFAS$WT_RAV1)
 hist(PFAS$WT_RAV2)
 hist(PFAS$WT_RAV3)
@@ -277,15 +293,58 @@ corrplot(p_corr, type = "upper", order = "hclust", method = "circle",
 ```
 
 ```{r}
-##### ANTHRO DATASET #####
-
 ##### OUTCOMES DISTRIBUTION TABLE
+# VISIT 1 (6 MONTHS PP)
+summary(PFAS$DPP_RAV1)
+summary(PFAS$AGE_RAV1)
 summary(PFAS$WT_RAV1)
+
+# VISIT 2 (EARLY CHILDHOOD)
+summary(PFAS$DPP_RAV2)
+summary(PFAS$AGE_RAV2)
 summary(PFAS$WT_RAV2)
+
+# VISIT 3 (MID CHILDHOOD)
+summary(PFAS$DPP_RAV3)
+summary(PFAS$AGE_RAV3)
 summary(PFAS$WT_RAV3)
+
+# VISIT 4 (EARLY TEEN)
+summary(PFAS$DPP_RAV4)
+summary(PFAS$AGE_RAV4)
 summary(PFAS$WT_RAV4)
 
-table1(~ WT_RAV1 + WT_RAV2 + WT_RAV3 + WT_RAV4, data = PFAS, overall = "Total")
+##### LABEL
+label(PFAS$DPP_RAV1) <- "Time postpartum (Visit 1)"
+label(PFAS$DPP_RAV2) <- "Time postpartum (Visit 2)"
+label(PFAS$DPP_RAV3) <- "Time postpartum (Visit 3)"
+label(PFAS$DPP_RAV4) <- "Time postpartum (Visit 4)"
+label(PFAS$AGE_RAV1) <- "Maternal age (Visit 1)"
+label(PFAS$AGE_RAV2) <- "Maternal age (Visit 2)"
+label(PFAS$AGE_RAV3) <- "Maternal age (Visit 3)"
+label(PFAS$AGE_RAV4) <- "Maternal age (Visit 4)"
+label(PFAS$WT_RAV1) <- "Weight (Visit 1)"
+label(PFAS$WT_RAV2) <- "Weight (Visit 2)"
+label(PFAS$WT_RAV3) <- "Weight (Visit 3)"
+label(PFAS$WT_RAV4) <- "Weight (Visit 4)"
+
+##### ADD UNITS
+units(PFAS$DPP_RAV1) <- "years"
+units(PFAS$DPP_RAV2) <- "years"
+units(PFAS$DPP_RAV3) <- "years"
+units(PFAS$DPP_RAV4) <- "years"
+units(PFAS$AGE_RAV1) <- "years"
+units(PFAS$AGE_RAV2) <- "years"
+units(PFAS$AGE_RAV3) <- "years"
+units(PFAS$AGE_RAV4) <- "years"
+units(PFAS$WT_RAV1) <- "kg"
+units(PFAS$WT_RAV2) <- "kg"
+units(PFAS$WT_RAV3) <- "kg"
+units(PFAS$WT_RAV4) <- "kg"
+
+
+table1(~ DPP_RAV1 + AGE_RAV1 + WT_RAV1 + DPP_RAV2 + AGE_RAV2 + WT_RAV2 + 
+         DPP_RAV3 + AGE_RAV3 + WT_RAV3 + DPP_RAV4 + AGE_RAV4 + WT_RAV4, data = PFAS, overall = "Total")
 
 ```
 

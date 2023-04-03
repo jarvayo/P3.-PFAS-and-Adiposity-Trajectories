@@ -9,8 +9,23 @@ library("haven")
 library("data.table")
 library("dplyr")
 
+```
+
+```{r}
 ##### LOAD DATASET
 PFAS <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_030823.sas7bdat")
+
+```
+
+```{r}
+##### CHECK FOR DUPLICATE IDS IN THE DATASET
+sum(duplicated(PFAS$familyid)) # 28 DUPLICATES
+
+# DROP THE SECOND DUPLICATE
+DUPS <- PFAS[duplicated(PFAS$familyid),]
+
+PFAS <- PFAS[order(PFAS$familyid),]
+PFAS <- PFAS[!duplicated(PFAS$familyid),]
 
 ```
 
@@ -68,18 +83,6 @@ PFAS$c_age_days_comp_d_qu_11y <- ifelse(PFAS$c_age_days_comp_d_qu_11y < 0, NA, P
 # summary(PFAS$c_age_days_comp_d_qu_9y)
 # summary(PFAS$c_age_days_comp_d_qu_10y)
 # summary(PFAS$c_age_days_comp_d_qu_11y)
-
-```
-
-```{r}
-##### CHECK FOR DUPLICATE IDS IN THE DATASET
-sum(duplicated(PFAS$familyid)) # 28 DUPLICATES
-
-# DROP THE SECOND DUPLICATE
-DUPS <- PFAS[duplicated(PFAS$familyid),]
-
-PFAS <- PFAS[order(PFAS$familyid),]
-PFAS <- PFAS[!duplicated(PFAS$familyid),]
 
 ```
 
@@ -227,7 +230,7 @@ summary(PFAS$PFHxS)
 summary(PFAS$MeFOSAA)
 summary(PFAS$EtFOSAA)
 summary(PFAS$PFOSA) 
-summary(PFAS$PFDeA) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH PFAS (N = 483)
+summary(PFAS$PFDeA) # INDIVIDUALS ARE MISSING ALL OR NONE OF EACH PFAS (N = 473)
 
 ```
 
@@ -264,45 +267,45 @@ summary(PFAS$WT_RAV4)
 # VISIT 1 (6 MONTH PP)
 summary(PFAS$DPP_RAV1)
 summary(PFAS$WT_RAV1)
-PFAS$DPP_RAV1 <- ifelse(is.na(PFAS$WT_RAV1), PFAS$DPP_RAV1 == NA, PFAS$WT_RAV1)
+PFAS$DPP_RAV1 <- ifelse(is.na(PFAS$WT_RAV1), PFAS$DPP_RAV1 == NA, PFAS$DPP_RAV1)
 summary(PFAS$DPP_RAV1)
 
 summary(PFAS$AGE_RAV1)
 summary(PFAS$WT_RAV1)
-PFAS$AGE_RAV1 <- ifelse(is.na(PFAS$WT_RAV1), PFAS$AGE_RAV1 == NA, PFAS$WT_RAV1)
+PFAS$AGE_RAV1 <- ifelse(is.na(PFAS$WT_RAV1), PFAS$AGE_RAV1 == NA, PFAS$AGE_RAV1)
 summary(PFAS$AGE_RAV1)
 
 # VISIT 2 (EARLY CHILDHOOD)
 summary(PFAS$DPP_RAV2)
 summary(PFAS$WT_RAV2)
-PFAS$DPP_RAV2 <- ifelse(is.na(PFAS$WT_RAV2), PFAS$DPP_RAV2 == NA, PFAS$WT_RAV2)
+PFAS$DPP_RAV2 <- ifelse(is.na(PFAS$WT_RAV2), PFAS$DPP_RAV2 == NA, PFAS$DPP_RAV2)
 summary(PFAS$DPP_RAV2)
 
 summary(PFAS$AGE_RAV2)
 summary(PFAS$WT_RAV2)
-PFAS$AGE_RAV2 <- ifelse(is.na(PFAS$WT_RAV2), PFAS$AGE_RAV2 == NA, PFAS$WT_RAV2)
+PFAS$AGE_RAV2 <- ifelse(is.na(PFAS$WT_RAV2), PFAS$AGE_RAV2 == NA, PFAS$AGE_RAV2)
 summary(PFAS$AGE_RAV2)
 
 # VISIT 3 (MID CHILDHOOD)
 summary(PFAS$DPP_RAV3)
 summary(PFAS$WT_RAV3)
-PFAS$DPP_RAV3 <- ifelse(is.na(PFAS$WT_RAV3), PFAS$DPP_RAV3 == NA, PFAS$WT_RAV3)
+PFAS$DPP_RAV3 <- ifelse(is.na(PFAS$WT_RAV3), PFAS$DPP_RAV3 == NA, PFAS$DPP_RAV3)
 summary(PFAS$DPP_RAV3)
 
 summary(PFAS$AGE_RAV3)
 summary(PFAS$WT_RAV3)
-PFAS$AGE_RAV3 <- ifelse(is.na(PFAS$WT_RAV3), PFAS$AGE_RAV3 == NA, PFAS$WT_RAV3)
+PFAS$AGE_RAV3 <- ifelse(is.na(PFAS$WT_RAV3), PFAS$AGE_RAV3 == NA, PFAS$AGE_RAV3)
 summary(PFAS$AGE_RAV3)
 
 # VISIT 4 (MID TEEN)
 summary(PFAS$DPP_RAV4)
 summary(PFAS$WT_RAV4)
-PFAS$DPP_RAV4 <- ifelse(is.na(PFAS$WT_RAV4), PFAS$DPP_RAV4 == NA, PFAS$WT_RAV4)
+PFAS$DPP_RAV4 <- ifelse(is.na(PFAS$WT_RAV4), PFAS$DPP_RAV4 == NA, PFAS$DPP_RAV4)
 summary(PFAS$DPP_RAV4)
 
 summary(PFAS$AGE_RAV4)
 summary(PFAS$WT_RAV4)
-PFAS$AGE_RAV4 <- ifelse(is.na(PFAS$WT_RAV4), PFAS$AGE_RAV4 == NA, PFAS$WT_RAV4)
+PFAS$AGE_RAV4 <- ifelse(is.na(PFAS$WT_RAV4), PFAS$AGE_RAV4 == NA, PFAS$AGE_RAV4)
 summary(PFAS$AGE_RAV4)
 
 ```

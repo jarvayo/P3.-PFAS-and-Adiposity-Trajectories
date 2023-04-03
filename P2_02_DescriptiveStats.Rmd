@@ -315,18 +315,18 @@ summary(PFAS$AGE_RAV4)
 summary(PFAS$WT_RAV4)
 
 ##### LABEL
-label(PFAS$DPP_RAV1) <- "Time postpartum (Visit 1)"
-label(PFAS$DPP_RAV2) <- "Time postpartum (Visit 2)"
-label(PFAS$DPP_RAV3) <- "Time postpartum (Visit 3)"
-label(PFAS$DPP_RAV4) <- "Time postpartum (Visit 4)"
-label(PFAS$AGE_RAV1) <- "Maternal age (Visit 1)"
-label(PFAS$AGE_RAV2) <- "Maternal age (Visit 2)"
-label(PFAS$AGE_RAV3) <- "Maternal age (Visit 3)"
-label(PFAS$AGE_RAV4) <- "Maternal age (Visit 4)"
-label(PFAS$WT_RAV1) <- "Weight (Visit 1)"
-label(PFAS$WT_RAV2) <- "Weight (Visit 2)"
-label(PFAS$WT_RAV3) <- "Weight (Visit 3)"
-label(PFAS$WT_RAV4) <- "Weight (Visit 4)"
+label(PFAS$DPP_RAV1) <- "Time postpartum, Visit 1"
+label(PFAS$DPP_RAV2) <- "Time postpartum, Visit 2"
+label(PFAS$DPP_RAV3) <- "Time postpartum, Visit 3"
+label(PFAS$DPP_RAV4) <- "Time postpartum, Visit 4"
+label(PFAS$AGE_RAV1) <- "Maternal age, Visit 1"
+label(PFAS$AGE_RAV2) <- "Maternal age, Visit 2"
+label(PFAS$AGE_RAV3) <- "Maternal age, Visit 3"
+label(PFAS$AGE_RAV4) <- "Maternal age, Visit 4"
+label(PFAS$WT_RAV1) <- "Weight, Visit 1"
+label(PFAS$WT_RAV2) <- "Weight, Visit 2"
+label(PFAS$WT_RAV3) <- "Weight, Visit 3"
+label(PFAS$WT_RAV4) <- "Weight, Visit 4"
 
 ##### ADD UNITS
 units(PFAS$DPP_RAV1) <- "years"

@@ -16,8 +16,8 @@ library("tidyr")
 ##### LOAD DATASET
 PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
 
-##### LOAD WORKSPACE
-load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
+# ##### LOAD WORKSPACE
+# load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
 
 ```
 
@@ -55,8 +55,8 @@ SITAR_DPP <- na.omit(SITAR_DPP)
 ##### IDENTIFY WEIGHT MEASUREMENT OUTLIERS
 outliers_dpp <- velout(x = DPP, y = WEIGHT, id = aid, data = SITAR_DPP, limit = 3)
 
-## SET 115 WEIGHT OUTLIERS MISSING
-SIT_DPP <- zapvelout(outliers_dpp, icode = c(4, 6))
+## SET 105 WEIGHT OUTLIERS MISSING
+SIT_DPP <- zapvelout(outliers_dpp, icode = c(4))
 SIT_DPP <- subset(SIT_DPP, !is.na(SIT_DPP$WEIGHT))
 
 # outliers_age <- velout(x = AGE, y = WEIGHT, id = aid, data = SITAR_AGE, limit = 3)
@@ -76,7 +76,7 @@ dfset(DPP, WEIGHT, SIT_DPP, FUN = BIC) # DF = 1
 
 ```{r}
 ##### FIT SITAR MODEL
-m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SIT_DPP, fixed='a+c', random='a+c')
+m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SIT_DPP, fixed='a', random='a+c')
 
 ##### SUMMARIES
 #print(m1_wt)
@@ -100,7 +100,7 @@ random_coef$aid <- as.numeric(rownames(random_coef))
 SIT_DPP <- merge(SIT_DPP, random_coef, by = "aid")
 fit_wt<-m1_wt$fitted
 
-# RENAME THE COLUMNS IN M1_wc$FITTED FROM "FIXED" AND "ID" TO "SYS FIXED EFFECTS" AND "SYS PREDICTED"
+# RENAME THE COLUMNS IN m2_wc$FITTED FROM "FIXED" AND "ID" TO "SYS FIXED EFFECTS" AND "SYS PREDICTED"
 colnames(fit_wt)<-c("WT_FixedEffect","WT_Predicted")
 SIT_DPP_R <- cbind(SIT_DPP,fit_wt)
 SIT_DPP_R$a_wt <- SIT_DPP_R$a

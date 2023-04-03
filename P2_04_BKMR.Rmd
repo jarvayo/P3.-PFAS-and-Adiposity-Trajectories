@@ -114,14 +114,15 @@ knots_WT <- fields::cover.design(l2mixture_WT_z, nd = 120)$design
 ```{r}
 ##### BUILD BKMR MODELS FOR SYSTOLIC BLOOD PRESSURE
 # SIZE PARAMETER
-m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT, X = cov_WT, iter = 25000, family = "gaussian",
+m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 25000, family = "gaussian",
                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
 beep(sound = 5, expr = NULL)
 
+##### KEEP THIS MODEL! RE-RUM THE MODEL ABOVE
 # VELOCITY PARAMETER
-m2_WT <- kmbayes(y = c_WT, Z = l2mixture_WT, X = cov_WT, iter = 25000, family = "gaussian",
-                     verbose = FALSE, varsel = TRUE, knots = knots_WT)
-beep(sound = 5, expr = NULL)
+# m2_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 25000, family = "gaussian",
+#                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
+# beep(sound = 5, expr = NULL)
 
 ```
 
@@ -362,7 +363,7 @@ m2_interact_WT
 m1_overall_WT <- ggplot(risk_overall_m1_WT, aes(quantile, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
                geom_hline(yintercept = 00, linetype = "dashed", color = "red", linewidth = 1) +
                geom_pointrange() +
-               scale_y_continuous(name = "Weight magnitude (kg)")+
+               scale_y_continuous(name = "Weight mag (kg)")+
                xlab("PFAS quantile") +
                theme_classic()+ theme(
                axis.text.x=element_text(size=25),
@@ -376,7 +377,7 @@ m1_overall_WT
 m2_overall_WT <- ggplot(risk_overall_m2_WT, aes(quantile, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
                geom_hline(yintercept = 00, linetype = "dashed", color = "red", linewidth = 1) +
                geom_pointrange() +
-               scale_y_continuous(name = "Weight velocity (kg/year)")+
+               scale_y_continuous(name = "Weight vel (kg/year)")+
                xlab("PFAS quantile") +
                theme_classic()+ theme(
                axis.text.x=element_text(size=25),

@@ -4,16 +4,21 @@
 
 ```{r}
 ##### LOAD PACKAGES
+library("dplyr")
 library("sas7bdat")
 library("haven")
 library("data.table")
-library("dplyr")
 
 ```
 
 ```{r}
 ##### LOAD DATASET
-PFAS <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_030823.sas7bdat")
+PFAS <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_030823.sas7bdat")
+FFQ <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_062922_FFQ.sas7bdat")
+
+# ADD FFQ VARIABLES TO PFAS DATASET
+FFQ <- subset(FFQ, select = c(aid, fish_d_f1, dark_meat_f1))
+PFAS <- merge(PFAS, FFQ, by = "aid")
 
 ```
 
@@ -170,18 +175,18 @@ colnames(PFAS)[colnames(PFAS) == "mom_pregnant_qu15"] <- "PREGSTAT_SRV11"
 colnames(PFAS)[colnames(PFAS) == "mom_pregnant_qu16"] <- "PREGSTAT_SRV12"
 
 # DAYS POSTPARTUM AT QUESTIONNAIRE(SELF-REPORTED)
-summary(PFAS$c_age_days_COMP_D_OYQ)
-summary(PFAS$c_age_days_COMP_D_SYQ)
-summary(PFAS$c_age_days_COMP_D_4YQ)
-summary(PFAS$c_age_days_COMP_D_QU5Y)
-summary(PFAS$c_age_days_COMP_D_QU6Y)
-summary(PFAS$c_age_days_comp_d_qu_8y)
-summary(PFAS$c_age_days_comp_d_qu_9y)
-summary(PFAS$c_age_days_comp_d_qu_10y)
-summary(PFAS$c_age_days_comp_d_qu_11y)
-summary(PFAS$child_age_days_qu14)
-summary(PFAS$child_age_days_qu15)
-summary(PFAS$child_age_days_qu16)
+# summary(PFAS$c_age_days_COMP_D_OYQ)
+# summary(PFAS$c_age_days_COMP_D_SYQ)
+# summary(PFAS$c_age_days_COMP_D_4YQ)
+# summary(PFAS$c_age_days_COMP_D_QU5Y)
+# summary(PFAS$c_age_days_COMP_D_QU6Y)
+# summary(PFAS$c_age_days_comp_d_qu_8y)
+# summary(PFAS$c_age_days_comp_d_qu_9y)
+# summary(PFAS$c_age_days_comp_d_qu_10y)
+# summary(PFAS$c_age_days_comp_d_qu_11y)
+# summary(PFAS$child_age_days_qu14)
+# summary(PFAS$child_age_days_qu15)
+# summary(PFAS$child_age_days_qu16)
 
 colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_OYQ"] <- "DPP_SRV1"
 colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_SYQ"] <- "DPP_SRV2"
@@ -197,16 +202,16 @@ colnames(PFAS)[colnames(PFAS) == "child_age_days_qu15"] <- "DPP_SRV11"
 colnames(PFAS)[colnames(PFAS) == "child_age_days_qu16"] <- "DPP_SRV12"
 
 # AGE AT WEIGHT MEASUREMENT (SELF REPORTED)
-summary(PFAS$m_age_days_COMP_D_4YQ)
-summary(PFAS$m_age_days_COMP_D_QU5Y)
-summary(PFAS$m_age_days_COMP_D_QU6Y)
-summary(PFAS$m_age_days_comp_d_qu_8y)
-summary(PFAS$m_age_days_comp_d_qu_9y)
-summary(PFAS$m_age_days_comp_d_qu_10y)
-summary(PFAS$m_age_days_comp_d_qu_11y)
-summary(PFAS$m_age_days_qu14)
-summary(PFAS$m_age_days_qu15)
-summary(PFAS$m_age_days_qu16)
+# summary(PFAS$m_age_days_COMP_D_4YQ)
+# summary(PFAS$m_age_days_COMP_D_QU5Y)
+# summary(PFAS$m_age_days_COMP_D_QU6Y)
+# summary(PFAS$m_age_days_comp_d_qu_8y)
+# summary(PFAS$m_age_days_comp_d_qu_9y)
+# summary(PFAS$m_age_days_comp_d_qu_10y)
+# summary(PFAS$m_age_days_comp_d_qu_11y)
+# summary(PFAS$m_age_days_qu14)
+# summary(PFAS$m_age_days_qu15)
+# summary(PFAS$m_age_days_qu16)
 
 colnames(PFAS)[colnames(PFAS) == "m_age_days_COMP_D_4YQ"] <- "AGE_SRV3"
 colnames(PFAS)[colnames(PFAS) == "m_age_days_COMP_D_QU5Y"] <- "AGE_SRV4"
@@ -310,11 +315,36 @@ summary(PFAS$AGE_RAV4)
 
 ```
 
-
 ```{r}
 ##### CREATE INDICATOR VARIABLE TO DETERMINE # OF RA-MEASURED WEIGHT MEASURES
-PFAS$RAWT_AVAIL <- ifelse(is.na(PFAS$WT_RAV1) & is.na(PFAS$WT_RAV2) & is.na(PFAS$WT_RAV3) & is.na(PFAS$WT_RAV4), 0, 1)
-table(PFAS$RAWT_AVAIL)
+# CREATE INDICATOR VARIBALE TO DETERMINE IF SOMEONE HAS AN RA-MEASURED WEIGHT AT EACH TIMEPOINT
+summary(PFAS$WT_RAV1)
+PFAS$WT1 <- ifelse(is.na(PFAS$WT_RAV1), 0, 1)
+table(PFAS$WT1)
+
+summary(PFAS$WT_RAV2)
+PFAS$WT2 <- ifelse(is.na(PFAS$WT_RAV2), 0, 1)
+table(PFAS$WT2)
+
+summary(PFAS$WT_RAV3)
+PFAS$WT3 <- ifelse(is.na(PFAS$WT_RAV3), 0, 1)
+table(PFAS$WT3)
+
+summary(PFAS$WT_RAV4)
+PFAS$WT4 <- ifelse(is.na(PFAS$WT_RAV4), 0, 1)
+table(PFAS$WT4)
+
+# SUMMARIZE # OF RA-MEASURED WEIGHT MEASURES
+PFAS$SUM <- (PFAS$WT1 + PFAS$WT2 + PFAS$WT3 + PFAS$WT4)
+table(PFAS$SUM)
+
+# CREATE INDICATOR VARIBALE TO DETERMINE IF SOMEONE HAS >=1 RA-MEASURED WEIGHT MEASURE
+PFAS$RAWT1_AVAIL <- ifelse(PFAS$SUM >= 1 , 1, 0)
+table(PFAS$RAWT1_AVAIL)
+
+# CREATE INDICATOR VARIBALE TO DETERMINE IF SOMEONE HAS >=2 RA-MEASURED WEIGHT MEASURE
+PFAS$RAWT2_AVAIL <- ifelse(PFAS$SUM >= 2, 1, 0)
+table(PFAS$RAWT2_AVAIL)
 
 ```
 
@@ -323,18 +353,26 @@ table(PFAS$RAWT_AVAIL)
 PFAS_1 <- subset(PFAS, !is.na(PFOS)) # MISSING PFAS DATA
 PFAS_2 <- subset(PFAS_1, t1diab_mom_epi_epia_d == 0 | is.na(t1diab_mom_epi_epia_d)) # HISTORY OF T1 DIABETES
 PFAS_2 <- subset(PFAS_2, t2diab_mom_epi_epia_d == 0 | is.na(t2diab_mom_epi_epia_d)) # HISTORY OF T2 DIABETES
-PFAS_3 <- subset(PFAS_2, RAWT_AVAIL == 1) # MISSING RA-MEASURED WEIGHT MEASURES 
+PFAS_3 <- subset(PFAS_2, RAWT1_AVAIL == 1) # HAS >= 1 RA-MEASURED WEIGHT MEASURE 
+PFAS_4 <- subset(PFAS_2, RAWT2_AVAIL == 1) # HAS >= 2 RA-MEASURED WEIGHT MEASURE 
 
 ```
 
 ```{r}
 ##### CREATE A DATASET OF INDIVIDUALS EXCLUDED FROM THE MAIN ANALYSIS (I.E., "PFAS_X")
 PFAS_3$include <- 1+0
-PFAS_X <- merge(PFAS, PFAS_3, by = "aid", all.x = TRUE)
-PFAS_X <- subset(PFAS_X, is.na(include))
+PFAS1_X <- merge(PFAS, PFAS_3, by = "aid", all.x = TRUE)
+PFAS1_X <- subset(PFAS1_X, is.na(include))
 
-colnames(PFAS_X)<-gsub(".y","",colnames(PFAS_X))
-colnames(PFAS_X)<-gsub(".x","",colnames(PFAS_X))
+colnames(PFAS1_X)<-gsub(".y","",colnames(PFAS1_X))
+colnames(PFAS1_X)<-gsub(".x","",colnames(PFAS1_X))
+
+PFAS_4$include <- 1+0
+PFAS2_X <- merge(PFAS, PFAS_4, by = "aid", all.x = TRUE)
+PFAS2_X <- subset(PFAS2_X, is.na(include))
+
+colnames(PFAS2_X)<-gsub(".y","",colnames(PFAS2_X))
+colnames(PFAS2_X)<-gsub(".x","",colnames(PFAS2_X))
 
 ```
 
@@ -344,16 +382,27 @@ PFAS_3 <- subset(PFAS_3, select = -c(WEIGHLBKG_9y, WEIGHLBKG_10y, c_age_days_COM
                                      c_age_days_COMP_D_IN7Y, c_age_days_comp_d_in_12y, age_days_comp_d_qu17,
                                      PFOSA, PFDeA, pfdeaLOD, EMPL_EPQ, EMPLHRS_EPQ, NOTLOOK_EPQ, LOOKING_EPQ,
                                      STUDENT_EPQ, mod_pre_d, vig_pre_d, sthyroid_epi))
-PFAS_X <- subset(PFAS_X, select = c(aid, age_mom_enroll_d, bmi_mom_prepreg_d, coll_grad, gt70k, mom_firstperiod_1,
-                                    married_cohab, pari_d, race2_mom_epi_epia_d, smokpreg_final_d))
+PFAS_4 <- subset(PFAS_4, select = -c(WEIGHLBKG_9y, WEIGHLBKG_10y, c_age_days_COMP_D_SMI, c_age_days_COMP_D_TYI,
+                                     c_age_days_COMP_D_IN7Y, c_age_days_comp_d_in_12y, age_days_comp_d_qu17,
+                                     PFOSA, PFDeA, pfdeaLOD, EMPL_EPQ, EMPLHRS_EPQ, NOTLOOK_EPQ, LOOKING_EPQ,
+                                     STUDENT_EPQ, mod_pre_d, vig_pre_d, sthyroid_epi))
+
+PFAS1_X <- subset(PFAS1_X, select = c(aid, age_mom_enroll_d, bmi_mom_prepreg_d, coll_grad, gt70k, mom_firstperiod_1,
+                                    married_cohab, pari_d, race2_mom_epi_epia_d, smokpreg_final_d, fish_d_f1, 
+                                    dark_meat_f1))
+PFAS2_X <- subset(PFAS2_X, select = c(aid, age_mom_enroll_d, bmi_mom_prepreg_d, coll_grad, gt70k, mom_firstperiod_1,
+                                    married_cohab, pari_d, race2_mom_epi_epia_d, smokpreg_final_d, fish_d_f1, 
+                                    dark_meat_f1))
 
 ##### SAVE DATASET
-write.csv(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.csv", row.names = T)
-write_sas(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.sas7bdat")
+write_sas(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_CL.sas7bdat")
+write_sas(PFAS_4, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS2_CL.sas7bdat")
 # THE "CL" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS CLEAN
 
-write.csv(PFAS_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_X.csv", row.names = T)
-write_sas(PFAS_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_X.sas7bdat")
+write_sas(PFAS1_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_X.sas7bdat")
+write.csv(PFAS1_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_X.csv", row.names = T)
+write_sas(PFAS2_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS2_X.sas7bdat")
+write.csv(PFAS2_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS2_X.csv", row.names = T)
 # THE "X" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS COMPOSED OF EXCLUDED INDIVIDUALS
 
 ```

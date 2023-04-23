@@ -95,7 +95,7 @@ summary(PFAS_NA$parity_cat)
 table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
          dark_meat_f1, data = PFAS_NA, overall="Total")
 
-table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k + 
+table1(~ race2_mom_epi_epia_d + bmi_cat + coll_grad + smokpreg_final_d + gt70k + 
          income_hh_epq_epqa_d + parity_cat + married_cohab, data = PFAS_NA, overall="Total")
 
 ```

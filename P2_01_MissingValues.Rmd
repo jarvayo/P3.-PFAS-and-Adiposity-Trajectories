@@ -15,7 +15,7 @@ library("tidyverse")
 
 ```{r}
 ##### LOAD DATASET
-PFAS_NA <- read.sas7bdat("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.sas7bdat")
+PFAS_NA <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_CL.sas7bdat")
 
 ```
 
@@ -64,12 +64,13 @@ PFAS_NA$parity_cat <- ifelse(PFAS_NA$parity_d == 0, 0,
 
 ##### CHECK MISSINGNESS OF CONTINUOUS DEMOGRAPHIC VARIABLES
 summary(PFAS_NA$age_mom_enroll_d)
-PFAS_NA$mom_age_comp_d_ma17 <- PFAS_NA$mom_age_days_comp_d_ma17/365
+  PFAS_NA$mom_age_comp_d_ma17 <- PFAS_NA$mom_age_days_comp_d_ma17/365
 summary(PFAS_NA$age_days_comp_d_ma17)
-
 summary(PFAS_NA$bmi_mom_prepreg_d)            
 summary(PFAS_NA$parity_d) 
-summary(PFAS_NA$mom_firstperiod_12y)          
+summary(PFAS_NA$mom_firstperiod_12y)  
+summary(PFAS_NA$fish_d_f1)
+summary(PFAS_NA$dark_meat_f1)
 
 ##### CHECK MISSINGNESS OF CATEGORICAL DEMOGRAPHIC VARIABLES
 PFAS_NA$bmi_cat <- as.factor(PFAS_NA$bmi_cat)
@@ -91,7 +92,8 @@ summary(PFAS_NA$married_cohab)
 summary(PFAS_NA$parity_cat)   
 
 ##### TABLE OF MISSINGNESS
-table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d, data = PFAS_NA, overall="Total")
+table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
+         dark_meat_f1, data = PFAS_NA, overall="Total")
 
 table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k + 
          income_hh_epq_epqa_d + parity_cat + married_cohab, data = PFAS_NA, overall="Total")
@@ -104,10 +106,11 @@ table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k +
 ##### https://www.analyticsvidhya.com/blog/2016/03/tutorial-powerful-packages-imputing-missing-values/
 set.seed(1234)
 
-PFAS_ARG <- aregImpute(~ gt70k + mom_firstperiod_12y + married_cohab + coll_grad + 
-                         race2_mom_epi_epia_d + smokpreg_final_d + bmi_mom_prepreg_d + 
-                         bmi_cat + parity_d + g_age_days_COLL_D_BLD1 + age_mom_enroll_d + 
-                         PFOS + PFOA + PFNA + PFHxS + MeFOSAA + EtFOSAA, 
+PFAS_ARG <- aregImpute(~ gt70k + mom_firstperiod_12y + fish_d_f1 + dark_meat_f1 + 
+                         married_cohab + coll_grad + race2_mom_epi_epia_d +
+                         smokpreg_final_d + bmi_mom_prepreg_d + bmi_cat + parity_d + 
+                         g_age_days_COLL_D_BLD1 + age_mom_enroll_d + PFOS + PFOA + 
+                         PFNA + PFHxS + MeFOSAA + EtFOSAA, 
                        nk = 0, data = PFAS_NA, n.impute = 5)
 
 ##### EXTRACT IMPUTED VALUES AND FORM A DATASET
@@ -157,7 +160,8 @@ PFAS_COMP$WT_RAV4 <- ifelse(PFAS_COMP$WT_RAV4 == 9999, NA, PFAS_COMP$WT_RAV4)
 
 ```{r}
 ##### RE-CHECK VARIABLE DISTRIBUTION FOR DATASET WITH IMPUTED DATA 
-table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d, data = PFAS_COMP, overall="Total")
+table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
+         dark_meat_f1, data = PFAS_COMP, overall="Total")
 
 table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k + 
          parity_cat + married_cohab, data = PFAS_COMP, overall="Total")
@@ -166,8 +170,8 @@ table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k +
 
 ```{r}
 ##### SAVE DATASET
-write.csv(PFAS_COMP, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_COMP.csv", row.names = T)
-write_sas(PFAS_COMP, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_COMP.sas7bdat")
+write.csv(PFAS_COMP,"C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_COMP.csv", row.names = T)
+write_sas(PFAS_COMP, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_COMP.sas7bdat")
 # THE "COMP" AT THE END OF THE SAVED FILE NAMES INDICATE THAT THESE DATASETS ARE CLEAN AND HAVE NO MISSING DATA
 
 ```

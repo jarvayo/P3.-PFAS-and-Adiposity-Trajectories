@@ -15,8 +15,8 @@ library("Hmisc")
 
 ```{r}
 ##### LOAD DATASET
-PFAS <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_COMP.csv")
-PFAS_X <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_X.csv")
+PFAS <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_COMP.csv")
+PFAS_X <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_X.csv")
 
 ```
 
@@ -77,7 +77,7 @@ PFAS$DPP_RAV4 <- PFAS$DPP_RAV4/365
 PFAS$AGE_RAV1 <- PFAS$AGE_RAV1/365 
 PFAS$AGE_RAV2 <- PFAS$AGE_RAV2/365 
 PFAS$AGE_RAV3 <- PFAS$AGE_RAV3/365 
-PFAS$AGE_RAV4 <- PFAS$AGE_RAV3/365 
+PFAS$AGE_RAV4 <- PFAS$AGE_RAV4/365 
 
 ```
 
@@ -101,6 +101,8 @@ PFAS$parity <- PFAS$parity_d
 PFAS$smoke <- PFAS$smokpreg_final_d
 PFAS$married <- PFAS$married_cohab
 PFAS$edu <- PFAS$coll_grad
+PFAS$fish <- PFAS$fish_d_f1
+PFAS$darkmeat <- PFAS$dark_meat_f1
 
 
 ##### RE-LABEL 
@@ -162,6 +164,8 @@ label(PFAS$parity) <- "Parity"
 label(PFAS$smoke) <- "Smoking status"
 label(PFAS$married) <- "Married or cohabitating"
 label(PFAS$edu) <- "Education"
+label(PFAS$fish) <- "Fish and shellfish consumption"
+label(PFAS$darkmeat) <- "Dark meat consumption"
 
 
 ##### ADD UNITS
@@ -169,10 +173,12 @@ units(PFAS$age_enroll)  <- "years"
 units(PFAS$menar) <- "years"
 units(PFAS$bmi)  <- "kg/m2"
 units(PFAS$bmi_cat)  <- "kg/m2"
+units(PFAS$fish) <- "servings/week"
+units(PFAS$darkmeat) <- "servings/week"
 
 ##### TABE 1
 table1(~ age_enroll + menar + bmi + bmi_cat + race +  income + parity + smoke + 
-         married + edu, data = PFAS, overall = "Total")
+         married + edu + fish + darkmeat, data = PFAS, overall = "Total")
 
 ```
 
@@ -189,6 +195,8 @@ PFAS_X$parity <- PFAS_X$pari_d
 PFAS_X$smoke <- PFAS_X$smokpreg_final_d
 PFAS_X$married <- PFAS_X$married_cohab
 PFAS_X$edu <- PFAS_X$coll_grad
+PFAS_X$fish <- PFAS_X$fish_d_f1
+PFAS_X$darkmeat <- PFAS_X$dark_meat_f1
 
 
 ##### RE-LABEL 
@@ -250,6 +258,8 @@ label(PFAS_X$parity) <- "Parity"
 label(PFAS_X$smoke) <- "Smoking status"
 label(PFAS_X$married) <- "Married or cohabitating"
 label(PFAS_X$edu) <- "Education"
+label(PFAS_X$fish) <- "Fish and shellfish consumption"
+label(PFAS_X$darkmeat) <- "Dark meat consumption"
 
 
 ##### ADD UNITS
@@ -257,11 +267,13 @@ units(PFAS_X$age_enroll)  <- "years"
 units(PFAS_X$menar) <- "years"
 units(PFAS_X$bmi)  <- "kg/m2"
 units(PFAS_X$bmi_cat)  <- "kg/m2"
+units(PFAS_X$fish) <- "servings/week"
+units(PFAS_X$darkmeat) <- "servings/week"
 
 
 ##### TABE 1
 table1(~ age_enroll + menar + bmi + bmi_cat + race +  income + parity + smoke + 
-         married + edu, data = PFAS_X, overall = "Total")
+         married + edu + fish + darkmeat, data = PFAS_X, overall = "Total")
 
 ```
 

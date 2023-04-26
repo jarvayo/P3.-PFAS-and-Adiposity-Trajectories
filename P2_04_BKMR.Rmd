@@ -2,24 +2,25 @@
 ##### RUN MIXTURES ANALYSIS WITH BKMR  #####
 #####                                  #####
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ##### LOAD PACKAGES
 library("bkmr")
 library("corrplot")
 library("ggplot2")
 library("beepr")
 library("modelsummary")
+library("table1")
 
 ```
 
 ```{r}
 ##### LOAD DATASET
-PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
-SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.csv")
+PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1.csv")
+SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR1.csv")
 
 ##### MERGE DATASETS
 PFAS_WT <- merge(x = SITAR, y = PFAS, by = "aid", all.x = TRUE)
-PFAS_WT <- subset(PFAS_WT, select = -c(X.x, X.1, X.y, age_mom_enroll_d))
+PFAS_WT <- subset(PFAS_WT, select = -c(X.x, X.1, X.y))
 
 ##### LOAD WORKSPACE
 load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR.Rdata")
@@ -27,9 +28,9 @@ load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2
 ```
 
 ```{r}
-##### CHECK DISTRIBUTION OF OUTCOME VARIABLES
-hist(PFAS_WT$a_wt)
-hist(PFAS_WT$c_wt)
+# ##### CHECK DISTRIBUTION OF OUTCOME VARIABLES
+# hist(PFAS_WT$a_wt)
+# hist(PFAS_WT$c_wt)
 
 ```
 
@@ -37,7 +38,7 @@ hist(PFAS_WT$c_wt)
 ##### TRANSFORM VARIABLES TO NUMERIC FOR BKMR COVARIATE MATRIX
 
 # RENAME
-PFAS_WT$age_enroll <- PFAS_WT$age_enroll
+PFAS_WT$age <- PFAS_WT$age_mom_enroll_d
 PFAS_WT$menar <- PFAS_WT$mom_firstperiod_12y
 PFAS_WT$bmi <- PFAS_WT$bmi_mom_prepreg_d
 PFAS_WT$race <- PFAS_WT$race2_mom_epi_epia_d
@@ -46,25 +47,27 @@ PFAS_WT$parity <- PFAS_WT$parity_d
 PFAS_WT$smoke <- PFAS_WT$smokpreg_final_d
 PFAS_WT$married <- PFAS_WT$married_cohab
 PFAS_WT$edu <- PFAS_WT$coll_grad
+PFAS_WT$fish <- PFAS_WT$fish_d_f1
+PFAS_WT$darkmeat <- PFAS_WT$dark_meat_f1
 
 # REFACTOR AND RELABEL 
 PFAS_WT$bmi_cat <- ifelse(PFAS_WT$bmi <18.5, 0,
                          ifelse(PFAS_WT$bmi >=18.5 & PFAS_WT$bmi < 25.0, 1, 
-                         ifelse(PFAS_WT$bmi >=25.0 & PFAS_WT$bmi < 30.0, 2, 
-                         ifelse(PFAS_WT$bmi >=30.0 & PFAS_WT$bmi < 35.0, 3,
-                         ifelse(PFAS_WT$bmi >=35.0, 4, 99)))))
+                                ifelse(PFAS_WT$bmi >=25.0 & PFAS_WT$bmi < 30.0, 2, 
+                                       ifelse(PFAS_WT$bmi >=30.0 & PFAS_WT$bmi < 35.0, 3,
+                                              ifelse(PFAS_WT$bmi >=35.0, 4, NA)))))
 PFAS_WT$race <- ifelse(PFAS_WT$race == "white", 0,
-                     ifelse(PFAS_WT$race == "black", 1,
-                     ifelse(PFAS_WT$race == "hispa", 2,
-                     ifelse(PFAS_WT$race == "asian", 3,
-                     ifelse(PFAS_WT$race == "other", 4, 4)))))
+                      ifelse(PFAS_WT$race == "black", 1,
+                             ifelse(PFAS_WT$race == "hispa", 2,
+                                    ifelse(PFAS_WT$race == "asian", 3,
+                                           ifelse(PFAS_WT$race == "other", 4, 4)))))
 PFAS_WT$income <- ifelse(PFAS_WT$income == 1, 1, 0)
 PFAS_WT$parity <- ifelse(PFAS_WT$parity == 0, 0,
                         ifelse(PFAS_WT$parity == 1, 1,
-                        ifelse(PFAS_WT$parity > 1, 2, 0)))
+                               ifelse(PFAS_WT$parity > 1, 2, 0)))
 PFAS_WT$smoke <- ifelse(PFAS_WT$smoke == "former", 0,
-                         ifelse(PFAS_WT$smoke == "smoke preg", 1,
-                         ifelse(PFAS_WT$smoke == "xnever", 2, 2)))
+                       ifelse(PFAS_WT$smoke == "smoke preg", 1,
+                              ifelse(PFAS_WT$smoke == "xnever", 2, 2)))
 PFAS_WT$married <- ifelse(PFAS_WT$married == 1, 1, 0)
 PFAS_WT$edu <- ifelse(PFAS_WT$edu == 1, 1, 0)
 
@@ -76,6 +79,16 @@ PFAS_WT$parity <- as.factor(PFAS_WT$parity)
 PFAS_WT$smoke <- as.factor(PFAS_WT$smoke)
 PFAS_WT$married <- as.factor(PFAS_WT$married)
 PFAS_WT$edu <- as.factor(PFAS_WT$edu)
+
+# CENTER AND SCALE CONTINUOUS VARIABLES, SYSTOLIC BP
+PFAS_WT$age_s <- scale(PFAS_WT$age)
+PFAS_WT$menar_s <- scale(PFAS_WT$menar)
+PFAS_WT$fish_s <- scale(PFAS_WT$fish)
+PFAS_WT$darkmeat_s <- scale(PFAS_WT$darkmeat)
+
+# ##### TABE 1
+# table1(~ age + menar + bmi + bmi_cat + race +  income + parity + smoke + 
+#          married + edu + fish + darkmeat, data = PFAS_WT, overall = "Total")
 
 ```
 
@@ -100,55 +113,54 @@ a_WT <- PFAS_WT$a_wt
 c_WT <- PFAS_WT$c_wt
 
 ##### CREATE THE COVARIATE MATRIX
-cov_WT <- as.matrix(cbind(PFAS_WT$age, PFAS_WT$menar, PFAS_WT$race, PFAS_WT$income,
-                           PFAS_WT$parity, PFAS_WT$smoke, PFAS_WT$married))
+cov_WT <- as.matrix(cbind(PFAS_WT$age_s, PFAS_WT$menar_s, PFAS_WT$race, PFAS_WT$bmi_cat, 
+                           PFAS_WT$parity, PFAS_WT$smoke, PFAS_WT$married, PFAS_WT$fish_s))
 
 ##### SET THE SEED
 set.seed(1234)
 
 ##### CREATE KNOTS
-knots_WT <- fields::cover.design(l2mixture_WT_z, nd = 120)$design
+knots_WT <- fields::cover.design(l2mixture_WT_z, nd = 110)$design
 
 ```
 
 ```{r}
-##### BUILD BKMR MODELS FOR SYSTOLIC BLOOD PRESSURE
-# SIZE PARAMETER
-m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 25000, family = "gaussian",
-                     verbose = FALSE, varsel = TRUE, knots = knots_WT)
-beep(sound = 5, expr = NULL)
-
-##### KEEP THIS MODEL! RE-RUM THE MODEL ABOVE
-# VELOCITY PARAMETER
-# m2_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 25000, family = "gaussian",
+# ##### BUILD BKMR MODELS FOR SYSTOLIC BLOOD PRESSURE
+# # SIZE PARAMETER
+# m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
+#                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
+# beep(sound = 5, expr = NULL)
+# 
+# # VELOCITY PARAMETER
+# m2_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
 #                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
 # beep(sound = 5, expr = NULL)
 
 ```
 
 ```{r}
-##### SAVE WORKSPACE FOR SBP BKMR FUNCTIONS
-save(m1_WT, m2_WT,
-     file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR.Rdata")
+# ##### SAVE WORKSPACE FOR SBP BKMR FUNCTIONS
+# save(m1_WT, m2_WT,
+#      file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR.Rdata")
 
 ```
 
 ```{r}
 ##### VALUES TO KEEP AFTER BURIN/THIN
-sel <- seq(0,25000,by = 50)
+sel <- seq(0,20000,by = 50)
 
 ##### ACCESS CONVERGENCE WITH TRACEPLOTS
-TracePlot(fit = m1_WT, par = "beta", sel = sel)
-TracePlot(fit = m2_WT, par = "beta", sel = sel)
+# TracePlot(fit = m1_WT, par = "beta", sel = sel)
+# TracePlot(fit = m2_WT, par = "beta", sel = sel)
 
 ##### VALUES TO KEEP AFTER BURNING/THIN (ACCORDING TO THE TRACEPLOT FUNCTION ABOVE)
-sel_m1_WT <- seq(1200, 25000, by = 1)
-TracePlot(fit = m1_WT, par = "beta", sel = sel_m1_WT)
-TracePlot(fit = m1_WT, par = "sigsq.eps", sel = sel_m1_WT)
+sel_m1_WT <- seq(1200, 20000, by = 1)
+# TracePlot(fit = m1_WT, par = "beta", sel = sel_m1_WT)
+# TracePlot(fit = m1_WT, par = "sigsq.eps", sel = sel_m1_WT)
 
-sel_m2_WT <- seq(1200, 25000, by = 1)
-TracePlot(fit = m2_WT, par = "beta", sel = sel_m2_WT)
-TracePlot(fit = m2_WT, par = "sigsq.eps", sel = sel_m2_WT)
+sel_m2_WT <- seq(1200, 20000, by = 1)
+# TracePlot(fit = m2_WT, par = "beta", sel = sel_m2_WT)
+# TracePlot(fit = m2_WT, par = "sigsq.eps", sel = sel_m2_WT)
 
 ```
 
@@ -173,7 +185,7 @@ pred_univar_m1_WT <- PredictorResponseUnivar(fit = m1_WT, sel = sel_m1_WT, metho
 pred_univar_m1_WT
 
 # SYSTOLIC BP, VELOCITY PARAMETER
-pred_univar_m2_WT <- PredictorResponseUnivar(fit = m2_WT, tibble = sel_m2_WT, method = "approx")
+pred_univar_m2_WT <- PredictorResponseUnivar(fit = m2_WT, sel = sel_m2_WT, method = "approx")
 pred_univar_m2_WT
 
 
@@ -428,325 +440,3 @@ m2_overall_interact_WT
 
 ```
 
-
-##### DIASTOLIC BLOOD PRESSURE
-
-
-```{r}
-# ##### BUILD BKMR MODELS FOR DIASTOLIC BLOOD PRESSURE
-# # DIASTOLIC BP, SIZE PARAMETER
-# m1_WT_dias <- kmbayes(y=a_dias, Z=l2mixture_dias, X=cov_dias, iter=25000, family = "gaussian", 
-#                      verbose=FALSE, varsel=TRUE, knots = knots_dias)
-# beep(sound=5, expr=NULL)
-# 
-# # SYTOLIC BP, VELOCITY PARAMETER
-# m2_c_dias <- kmbayes(y=c_dias, Z=l2mixture_dias, X=cov_dias, iter=25000, family = "gaussian", 
-#                      verbose=FALSE, varsel=TRUE, knots = knots_dias)
-# beep(sound=5, expr=NULL)
-
-```
-
-```{r}
-# ##### SAVE WORKSPACE FOR DBP BKMR FUNCTIONS
-# save(m1_WT_dias, m2_c_dias,
-#      file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P1_BKMR_DIAS_1297.Rdata")
-# load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P1_BKMR_DIAS_1297.Rdata")
-
-```
-
-```{r}
-##### VALUES TO KEEP AFTER BURIN/THIN
-sel <- seq(0,25000,by = 50)
-
-##### ACCESS CONVERGENCE WITH TRACEPLOTS
-TracePlot(fit = m1_WT_dias, par = "beta", sel = sel)
-TracePlot(fit = m2_c_dias, par = "beta", sel = sel)
-
-##### VALUES TO KEEP AFTER BURNING/THIN (ACCORDING TO THE TRACEPLOT FUNCTION ABOVE)
-sel_m1_WT_dias <- seq(1200, 25000, 1)
-TracePlot(fit = m1_WT_dias, par = "beta", sel = sel_m1_WT_dias)
-TracePlot(fit = m1_WT_dias, par = "sigsq.eps", sel = sel_m1_WT_dias)
-
-sel_m2_c_dias <- seq(1200, 25000, 1)
-TracePlot(fit = m2_c_dias, par = "beta", sel = sel_m2_c_dias)
-TracePlot(fit = m2_c_dias, par = "sigsq.eps", sel = sel_m2_c_dias)
-
-```
-
-```{r}
-##### ESIMATE POSTERIOR INCLUSION PROBABILITIES
-# SIZE PARAMETER
-summary(m1_WT_dias)
-ExtractPIPs(m1_WT_dias, sel = sel_m1_WT_dias)
-
-# VELOCITY PARAMETER
-summary(m2_c_dias)
-ExtractPIPs(m2_c_dias, sel = sel_m2_c_dias)
-
-```
-
-```{r}
-##### RUN BKMR FUNCTIONS #####
-
-##### UNIVARIATE EXPOSURE-RESPONSE FUNCTIONS
-# DIASTOLIC BP, SIZE PARAMETER
-pred_univar_m1_WT_dias <- PredictorResponseUnivar(fit = m1_WT_dias, sel = sel_m1_WT_dias, method = "approx")
-pred_univar_m1_WT_dias
-
-# DIASTOLIC BP, VELOCITY PARAMETER
-pred_univar_m2_c_dias <- PredictorResponseUnivar(fit = m2_c_dias, tibble = sel_m2_c_dias, method = "approx")
-pred_univar_m2_c_dias
-
-
-
-##### BIVARIATE EXPOSURE-RESPONSE CURVE TO ASSESS POTENTIAL INTERACTIONS
-# DIASTOLIC BP, SIZE PARAMETER
-pred_bivar_m1_WT_dias <- PredictorResponseBivar(fit = m1_WT_dias, min.plot.dist = 1, sel = sel_m1_WT_dias, method = "approx")
-
-# DIASTOLIC BP, VELOCITY PARAMETER
-pred_bivar_m2_c_dias <- PredictorResponseBivar(fit = m2_c_dias, min.plot.dist = 1, sel = sel_m2_c_dias, method = "approx")
-
-
-
-##### BIVARIATE INTERACTIONS AMONG PFAS
-# DIASTOLIC BP, SIZE PARAMETER
-pred_interact_m1_WT_dias <- PredictorResponseBivarLevels(pred.resp.df = pred_bivar_m1_WT_dias, Z = l2mixture_dias,
-                                                        both_pairs = T, qs = c(0.25, 0.50, 0.75))
-pred_interact_m1_WT_dias_1090 <- PredictorResponseBivarLevels(pred.resp.df = pred_bivar_m1_WT_dias, Z = l2mixture_dias, 
-                                                             both_pairs = TRUE, qs = c(0.10, 0.5, 0.90))
-
-# DIASTOLIC BP, VELOCITY PARAMETER
-pred_interact_m2_c_dias <- PredictorResponseBivarLevels(pred.resp.df = pred_bivar_m2_c_dias, Z = l2mixture_dias,
-                                                        both_pairs = T, qs = c(0.25, 0.50, 0.75))
-pred_interact_m2_c_dias_1090 <- PredictorResponseBivarLevels(pred.resp.df = pred_bivar_m2_c_dias, Z = l2mixture_dias, 
-                                                             both_pairs = TRUE, qs = c(0.10, 0.5, 0.90))
-
-
-
-##### OVERALL JOINT MIXTURE EFFECT
-# DIASTOLIC BP, SIZE PARAMETER
-risk_overall_m1_WT_dias <- OverallRiskSummaries(fit = m1_WT_dias, q.fixed = 0.50, sel = sel_m1_WT_dias,
-                                               method = "approx", qs = seq(0.25, 0.75, by = 0.05))
-
-#DIASTOLIC BP, VELOCITY PARAMETER
-risk_overall_m2_c_dias <- OverallRiskSummaries(fit = m2_c_dias, q.fixed = 0.50, sel = sel_m2_c_dias, 
-                                               method = "approx", qs = seq(0.25, 0.75, by = 0.05))
-
-
-
-##### SINGLE PFAS EFFECT
-# DIASTOLIC BP, SIZE PARAMETER
-risks_singvar_m1_WT_dias <- SingVarRiskSummaries(fit = m1_WT_dias, qs.diff = c(0.25, 0.75),
-                                            q.fixed = c(0.25, 0.50, 0.75),sel=sel_m1_WT_dias, method = "approx")
-
-#DIASTOLIC BP, VELOCITY PARAMETER
-risks_singvar_m2_c_dias <- SingVarRiskSummaries(fit = m2_c_dias, qs.diff = c(0.25, 0.75),
-                                            q.fixed = c(0.25, 0.50, 0.75),sel=sel_m2_c_dias, method = "approx")
-
-
-
-##### UNIVARIATE INTERACTIONS AMONG PFAS
-# DIASTOLIC BP, SIZE PARAMETER
-risks_overall_interact_m1_WT_dias <- SingVarIntSummaries(fit = m1_WT_dias, qs.diff = c(0.25, 0.75),
-                                       qs.fixed = c(0.25, 0.75),sel=sel_m1_WT_dias)
-
-#DIASTOLIC BP, VELOCITY PARAMETER
-risks_overall_interact_m2_c_dias <- SingVarIntSummaries(fit = m2_c_dias, qs.diff = c(0.25, 0.75),
-                                       qs.fixed = c(0.25, 0.75),sel=sel_m2_c_dias)
-
-```
-
-```{r}
-##### PLOT UNIVARIATE EXPOSURE-RESPONSE FUNCTION
-
-m1_dias <- ggplot(pred_univar_m1_WT_dias, aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + facet_wrap(~ variable) + ylab("DBP magnitude (mmHg)") + 
-  xlab("Plasma PFAS, log2(ng/mL)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1) + 
-  theme(text = element_text(size = 25), plot.title = element_text(hjust = 0.5, size = 25, face = "bold")) 
-#+ ggtitle("Size of DBP Trajectory")
-
-m11_dias <- ggplot(pred_univar_m1_WT_dias[1:50,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFOS, log2(ng/mL)") + 
-  ylab("DBP mag (mmHg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m12_dias <- ggplot(pred_univar_m1_WT_dias[51:100,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFOA, log2(ng/mL)") + 
-  ylab("DBP mag (mmHg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m13_dias <- ggplot(pred_univar_m1_WT_dias[101:150,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() +xlab("Plasma PFNA, log2(ng/mL)") + 
-  ylab("DBP mag (mmHg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m14_dias <- ggplot(pred_univar_m1_WT_dias[151:200,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() +xlab("Plasma PFHxS, log2(ng/mL)") + 
-  ylab("DBP mag (mmHg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m15_dias <- ggplot(pred_univar_m1_WT_dias[201:250,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() +xlab("Plasma MeFOSAA, log2(ng/mL)") + 
-  ylab("DBP mag (mmHg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m16_dias <- ggplot(pred_univar_m1_WT_dias[251:300,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() +xlab("Plasma EtFOSAA, log2(ng/mL)") + 
-  ylab("DBP mag (mmHg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m1_dias
-m11_dias
-m12_dias
-m13_dias
-m14_dias
-m15_dias
-m16_dias
-
-
-
-m2_dias <- ggplot(pred_univar_m2_c_dias, aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + facet_wrap(~ variable) + ylab("DBP velocity (mmHg/wk)") + 
-  xlab("Plasma PFAS, log2(ng/mL)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1) + 
-  theme(text = element_text(size = 25), plot.title = element_text(hjust = 0.5, size = 25, face = "bold")) 
-#+ ggtitle("Velocity of DBP Trajectory")
-
-m21_dias <- ggplot(pred_univar_m2_c_dias[1:50,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFOS, log2(ng/mL)") + 
-  ylab("DBP vel (mmHg/wk)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m22_dias <- ggplot(pred_univar_m2_c_dias[51:100,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFOA, log2(ng/mL)") + 
-  ylab("DBP vel (mmHg/wk)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m23_dias <- ggplot(pred_univar_m2_c_dias[101:150,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFNA, log2(ng/mL)") + 
-  ylab("DBP vel (mmHg/wk)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m24_dias <- ggplot(pred_univar_m2_c_dias[151:200,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFHxS, log2(ng/mL)") + 
-  ylab("DBP vel (mmHg/wk)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m25_dias <- ggplot(pred_univar_m2_c_dias[201:250,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma MeFOSAA, log2(ng/mL)") + 
-  ylab("DBP vel (mmHg/wk)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m26_dias <- ggplot(pred_univar_m2_c_dias[251:300,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma EtFOSAA, log2(ng/mL)") + 
-  ylab("DBP vel (mmHg/wk)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 25))
-
-m2_dias
-m21_dias
-m22_dias
-m23_dias
-m24_dias
-m25_dias
-m26_dias
-
-```
-
-```{r}
-##### PLOT BIVARIATE INTERACTIONS
-##### NON-PARALLEL LINES WOULD INDICATE POTENTIAL INTERACTIONS
-
-m1_interact_dias <- ggplot(pred_interact_m1_WT_dias, aes(z1, est)) +
-  geom_smooth(aes(col = quantile), stat = "identity") + 
-  facet_grid(variable2 ~ variable1) + theme(
-               axis.title.x=element_text(angle=0, color='black', size = 20),
-               axis.title.y=element_text(angle=90, color='black', size = 20)) +
-  xlab ("PFAS 1") +
-  ylab ("DBP magnitude (mmHg)") +
-  ggtitle("h(PFAS 1 | Quantiles of PFAS 2)") 
-m1_interact_dias
-
-
-m2_interact_dias <- ggplot(pred_interact_m2_c_dias, aes(z1, est)) +
-  geom_smooth(aes(col = quantile), stat = "identity") + 
-  facet_grid(variable2 ~ variable1) + theme(
-               axis.title.x=element_text(angle=0, color='black', size = 20),
-               axis.title.y=element_text(angle=90, color='black', size = 20)) +
-  xlab ("PFAS 1") +
-  ylab ("DBP velocity (mmHg/week)") +
-  ggtitle("h(PFAS 1 | Quantiles of PFAS 2)") 
-m2_interact_dias
-
-```
-
-```{r}
-##### PLOT THE OVERALL MIXTURE EFFECT
-
-m1_overall_dias <- ggplot(risk_overall_m1_WT_dias, aes(quantile, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
-               geom_hline(yintercept = 00, linetype = "dashed", color = "red", linewidth = 1) +
-               geom_pointrange() +
-               scale_y_continuous(name = "DBP magnitude (mmHg)")+
-               xlab("PFAS quantile") +
-               theme_classic()+ theme(
-               axis.text.x=element_text(size = 25),
-               axis.text.y=element_text(size = 25),
-               axis.title.x=element_text(angle = 0, color='black', size = 25),
-               axis.title.y=element_text(angle = 90, color='black', size = 25))
-# plot.title = element_text(hjust = 0.5, size = 25, face = "bold")) + ggtitle("Magnitude of DBP Trajectory")
-m1_overall_dias
-
-
-m2_overall_dias <- ggplot(risk_overall_m2_c_dias, aes(quantile, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
-               geom_hline(yintercept = 00, linetype = "dashed", color = "red", linewidth = 1) +
-               geom_pointrange() +
-               scale_y_continuous(name = "DBP velocity (mmHg/wk)")+
-               xlab("PFAS quantile") +
-               theme_classic() + theme(
-               axis.text.x=element_text(size = 25),
-               axis.text.y=element_text(size = 25),
-               axis.title.x=element_text(angle = 0, color='black', size = 25),
-               axis.title.y=element_text(angle = 90, color='black', size = 25))
-# plot.title = element_text(hjust = 0.5, size = 25, face = "bold")) + ggtitle("Velocity of DBP Trajectory")
-m2_overall_dias
-
-```
-
-```{r}
-##### PLOT SINGLE PFAS EFFECT
-##### HOLDING ALL OTHER PFAS AT THE 25TH, 50TH, 75TH PERCENTILES
-
-m1_overall_single_dias <- ggplot(risks_singvar_m1_WT_dias, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd,
-                                col = q.fixed)) + theme(text = element_text(size = 25)) +
-  geom_hline(aes(yintercept=0), linetype="dashed",  color = "black", linewidth = 1) +
-  geom_pointrange(position = position_dodge(width = 0.75)) + coord_flip() +
-  scale_x_discrete(name="Plasma PFAS") + scale_y_continuous(name = "DBP magnitude (mmHg)")
-m1_overall_single_dias
-
-
-m2_overall_single_dias <- ggplot(risks_singvar_m2_c_dias, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd,
-                                col = q.fixed)) + theme(text = element_text(size = 25)) +
-  geom_hline(aes(yintercept=0), linetype="dashed",  color = "black", linewidth = 1) +
-  geom_pointrange(position = position_dodge(width = 0.75)) + coord_flip() +
-  scale_x_discrete(name= "Plasma PFAS") + scale_y_continuous(name="DBP velocity (mmHg/week)")
-m2_overall_single_dias
-
-```
-
-```{r}
-##### PLOT UNIVARIATE INTERACTIONS
-
-m1_overall_interact_dias <- ggplot(risks_overall_interact_m1_WT_dias, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
-  geom_pointrange(position = position_dodge(width = 0.75)) +
-  geom_hline(yintercept = 0, lty = 2, color = "red", linewidth = 1) + coord_flip() +
-  ylab("DBP magnitude (mmHg)") + theme(text = element_text(size = 25)) +
-  xlab("Plasma PFAS")
-m1_overall_interact_dias
-
-
-m2_overall_interact_dias <- ggplot(risks_overall_interact_m2_c_dias, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
-  geom_pointrange(position = position_dodge(width = 0.75)) +
-  geom_hline(yintercept = 0, lty = 2, color = "red", linewidth = 1) + coord_flip()+
-  ylab("DBP velocity (mmHg/week)") + theme(text = element_text(size = 25)) +
-  xlab("Plasma PFAS")
-m2_overall_interact_dias
-
-```

@@ -1,0 +1,177 @@
+#####                                 #####
+##### IMPUTE MISSING COVARIATE VALUES #####
+#####                                 #####
+
+```{r}
+##### LOAD PACKAGES
+library("sas7bdat")
+library("haven")
+library("Hmisc")
+library("dplyr")
+library("table1")
+library("tidyverse")
+
+```
+
+```{r}
+##### LOAD DATASET
+PFAS_NA <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS2_CL.sas7bdat")
+
+```
+
+```{r}
+##### REPLACE MISSING VALUES AND BLANK SPACES WITH "NA"
+PFAS_NA <- PFAS_NA %>% mutate_all(~ifelse(is.nan(.), NA, .))
+PFAS_NA[PFAS_NA == ""] <- NA
+
+```
+
+```{r}
+##### CLEAN AND SUMMARIZE ANTHRO DATASET #####
+
+##### CREATE A CATEGORICAL VARIABLE FOR BMI
+PFAS_NA$bmi_cat <- ifelse(PFAS_NA$bmi_mom_prepreg_d <18.5, 0,
+                            ifelse(PFAS_NA$bmi_mom_prepreg_d >=18.5 & PFAS_NA$bmi_mom_prepreg_d < 25.0, 1, 
+                                   ifelse(PFAS_NA$bmi_mom_prepreg_d >=25.0 & PFAS_NA$bmi_mom_prepreg_d < 30.0, 2, 
+                                          ifelse(PFAS_NA$bmi_mom_prepreg_d >=30.0 & PFAS_NA$bmi_mom_prepreg_d < 35.0, 3,
+                                                 ifelse(PFAS_NA$bmi_mom_prepreg_d >=35.0, 4, NA)))))
+
+PFAS_NA$bmi_cat <- factor(PFAS_NA$bmi_cat,
+                            levels = c(0, 1, 2, 3, 4),
+                            labels = c("Underweight (< 18.5)", "Normal weight (18.5 to 24.9)", 
+                                       "Overweight (25.0 to 29.9)", "Obese (30.0 to 34.9)", 
+                                       "Extremely obese (>= 35)"))
+
+##### FOR THE RACE VARIABLE, DUE TO SMALL NUMBERS OF OBSERVATIONS PER CATEGORY,
+##### COMBINED THE CATEGORIES "OTHER" AND ">1 RACE"
+PFAS_NA$race2_mom_epi_epia_d <- ifelse(PFAS_NA$race2_mom_epi_epia_d == "more than 1 race", 
+                                         "other", PFAS_NA$race2_mom_epi_epia_d)
+
+##### FOR THE INCOME VARIABLE, REPLACE "IDK" ANSWERS WITH "NA"
+PFAS_NA$income_hh_epq_epqa_d <- ifelse(PFAS_NA$income_hh_epq_epqa_d == 9, NA, 
+                                         PFAS_NA$income_hh_epq_epqa_d)
+
+##### FOR THE INCOME VARIABLE, DUE TO SMALL NUMBERS OF OBSERVATIONS PER CATEGORY,
+##### COMBINED THE TWO LOWEST CATEGORIES
+PFAS_NA$income_hh_epq_epqa_d <- ifelse(PFAS_NA$income_hh_epq_epqa_d == 1 | PFAS_NA$income_hh_epq_epqa_d == 2, 3, 
+                                         PFAS_NA$income_hh_epq_epqa_d)
+
+##### CREATE A CATEGORICAL VARIABLE FOR PARITY
+PFAS_NA$parity_cat <- ifelse(PFAS_NA$parity_d == 0, 0,
+                               ifelse(PFAS_NA$parity_d == 1, 1,
+                                      ifelse(PFAS_NA$parity_d > 1, 2, 0)))
+
+
+##### CHECK MISSINGNESS OF CONTINUOUS DEMOGRAPHIC VARIABLES
+summary(PFAS_NA$age_mom_enroll_d)
+  PFAS_NA$mom_age_comp_d_ma17 <- PFAS_NA$mom_age_days_comp_d_ma17/365
+summary(PFAS_NA$age_days_comp_d_ma17)
+summary(PFAS_NA$bmi_mom_prepreg_d)            
+summary(PFAS_NA$parity_d) 
+summary(PFAS_NA$mom_firstperiod_12y)  
+summary(PFAS_NA$fish_d_f1)
+summary(PFAS_NA$dark_meat_f1)
+
+##### CHECK MISSINGNESS OF CATEGORICAL DEMOGRAPHIC VARIABLES
+PFAS_NA$bmi_cat <- as.factor(PFAS_NA$bmi_cat)
+PFAS_NA$race2_mom_epi_epia_d <- as.factor(PFAS_NA$race2_mom_epi_epia_d)
+PFAS_NA$coll_grad <- as.factor(PFAS_NA$coll_grad)
+PFAS_NA$income_hh_epq_epqa_d <- as.factor(PFAS_NA$income_hh_epq_epqa_d)
+PFAS_NA$gt70k <- as.factor(PFAS_NA$gt70k)
+PFAS_NA$smokpreg_final_d <- as.factor(PFAS_NA$smokpreg_final_d)
+PFAS_NA$married_cohab <- as.factor(PFAS_NA$married_cohab)
+PFAS_NA$parity_cat <- as.factor(PFAS_NA$parity_cat)
+
+summary(PFAS_NA$bmi_cat)              
+summary(PFAS_NA$race2_mom_epi_epia_d) 
+summary(PFAS_NA$coll_grad)      
+summary(PFAS_NA$income_hh_epq_epqa_d) 
+summary(PFAS_NA$gt70k)              
+summary(PFAS_NA$smokpreg_final_d) 
+summary(PFAS_NA$married_cohab)  
+summary(PFAS_NA$parity_cat)   
+
+##### TABLE OF MISSINGNESS
+table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
+         dark_meat_f1, data = PFAS_NA, overall="Total")
+
+table1(~ race2_mom_epi_epia_d + bmi_cat + coll_grad + smokpreg_final_d + gt70k + 
+         income_hh_epq_epqa_d + parity_cat + married_cohab, data = PFAS_NA, overall="Total")
+
+```
+
+```{r}
+##### IMPUTE MISSING VALUES USING "HMISC".
+##### aregImpute() ALLOWS MEAN IMUPTATION USING ADDITIVE REGRESSION BOOTSTRAPPING, AND PREDICTIVE MEAN MATCHING.
+##### https://www.analyticsvidhya.com/blog/2016/03/tutorial-powerful-packages-imputing-missing-values/
+set.seed(1234)
+
+PFAS_ARG <- aregImpute(~ gt70k + mom_firstperiod_12y + fish_d_f1 + dark_meat_f1 + 
+                         married_cohab + coll_grad + race2_mom_epi_epia_d +
+                         smokpreg_final_d + bmi_mom_prepreg_d + bmi_cat + parity_d + 
+                         g_age_days_COLL_D_BLD1 + age_mom_enroll_d + PFOS + PFOA + 
+                         PFNA + PFHxS + MeFOSAA + EtFOSAA, 
+                       nk = 0, data = PFAS_NA, n.impute = 5)
+
+##### EXTRACT IMPUTED VALUES AND FORM A DATASET
+PFAS_IMP <- as.data.frame(impute.transcan(PFAS_ARG, imputation=5, data=PFAS_NA, 
+                                            list.out=TRUE, pr=FALSE, check=FALSE))
+
+##### MERGE ORIGNIAL DATASET WITH IMPUTED DATASET
+PFAS_BIND <- cbind(PFAS_NA ,PFAS_IMP)
+
+##### CREATE INDICATOR FOR MISSINGNESS IN DXA MEASURES
+PFAS_BIND$DPP_RAV1 <- ifelse(is.na(PFAS_BIND$DPP_RAV1), 9999, PFAS_BIND$DPP_RAV1)
+PFAS_BIND$DPP_RAV2 <- ifelse(is.na(PFAS_BIND$DPP_RAV2), 9999, PFAS_BIND$DPP_RAV2)
+PFAS_BIND$DPP_RAV3 <- ifelse(is.na(PFAS_BIND$DPP_RAV3), 9999, PFAS_BIND$DPP_RAV3)
+PFAS_BIND$DPP_RAV4 <- ifelse(is.na(PFAS_BIND$DPP_RAV4), 9999, PFAS_BIND$DPP_RAV4)
+
+PFAS_BIND$AGE_RAV1 <- ifelse(is.na(PFAS_BIND$AGE_RAV1), 9999, PFAS_BIND$AGE_RAV1)
+PFAS_BIND$AGE_RAV2 <- ifelse(is.na(PFAS_BIND$AGE_RAV2), 9999, PFAS_BIND$AGE_RAV2)
+PFAS_BIND$AGE_RAV3 <- ifelse(is.na(PFAS_BIND$AGE_RAV3), 9999, PFAS_BIND$AGE_RAV3)
+PFAS_BIND$AGE_RAV4 <- ifelse(is.na(PFAS_BIND$AGE_RAV4), 9999, PFAS_BIND$AGE_RAV4)
+
+PFAS_BIND$WT_RAV1 <- ifelse(is.na(PFAS_BIND$WT_RAV1), 9999, PFAS_BIND$WT_RAV1)
+PFAS_BIND$WT_RAV2 <- ifelse(is.na(PFAS_BIND$WT_RAV2), 9999, PFAS_BIND$WT_RAV2)
+PFAS_BIND$WT_RAV3 <- ifelse(is.na(PFAS_BIND$WT_RAV3), 9999, PFAS_BIND$WT_RAV3)
+PFAS_BIND$WT_RAV4 <- ifelse(is.na(PFAS_BIND$WT_RAV4), 9999, PFAS_BIND$WT_RAV4)
+
+##### DROP VARIABLES WITH MISSING (NON-IMPUTED) DATA
+PFAS_COMP <- PFAS_BIND[ , colSums(is.na(PFAS_BIND)) == 0]
+PFAS_COMP <- PFAS_COMP %>% select(-contains(".1"))
+
+##### USE INDICATOR FOR MISSING DXA MEASURE TO RE-ENTER "NA"
+PFAS_COMP$DPP_RAV1 <- ifelse(PFAS_COMP$DPP_RAV1 == 9999, NA, PFAS_COMP$DPP_RAV1)
+PFAS_COMP$DPP_RAV2 <- ifelse(PFAS_COMP$DPP_RAV2 == 9999, NA, PFAS_COMP$DPP_RAV2)
+PFAS_COMP$DPP_RAV3 <- ifelse(PFAS_COMP$DPP_RAV3 == 9999, NA, PFAS_COMP$DPP_RAV3)
+PFAS_COMP$DPP_RAV4 <- ifelse(PFAS_COMP$DPP_RAV4 == 9999, NA, PFAS_COMP$DPP_RAV4)
+
+PFAS_COMP$AGE_RAV1 <- ifelse(PFAS_COMP$AGE_RAV1 == 9999, NA, PFAS_COMP$AGE_RAV1)
+PFAS_COMP$AGE_RAV2 <- ifelse(PFAS_COMP$AGE_RAV2 == 9999, NA, PFAS_COMP$AGE_RAV2)
+PFAS_COMP$AGE_RAV3 <- ifelse(PFAS_COMP$AGE_RAV3 == 9999, NA, PFAS_COMP$AGE_RAV3)
+PFAS_COMP$AGE_RAV4 <- ifelse(PFAS_COMP$AGE_RAV4 == 9999, NA, PFAS_COMP$AGE_RAV4)
+
+PFAS_COMP$WT_RAV1 <- ifelse(PFAS_COMP$WT_RAV1 == 9999, NA, PFAS_COMP$WT_RAV1)
+PFAS_COMP$WT_RAV2 <- ifelse(PFAS_COMP$WT_RAV2 == 9999, NA, PFAS_COMP$WT_RAV2)
+PFAS_COMP$WT_RAV3 <- ifelse(PFAS_COMP$WT_RAV3 == 9999, NA, PFAS_COMP$WT_RAV3)
+PFAS_COMP$WT_RAV4 <- ifelse(PFAS_COMP$WT_RAV4 == 9999, NA, PFAS_COMP$WT_RAV4)
+
+```
+
+```{r}
+##### RE-CHECK VARIABLE DISTRIBUTION FOR DATASET WITH IMPUTED DATA 
+table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
+         dark_meat_f1, data = PFAS_COMP, overall="Total")
+
+table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k + 
+         parity_cat + married_cohab, data = PFAS_COMP, overall="Total")
+
+```
+
+```{r}
+##### SAVE DATASET
+write.csv(PFAS_COMP,"C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS2_COMP.csv", row.names = T)
+write_sas(PFAS_COMP, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS2_COMP.sas7bdat")
+# THE "COMP" AT THE END OF THE SAVED FILE NAMES INDICATE THAT THESE DATASETS ARE CLEAN AND HAVE NO MISSING DATA
+
+```

@@ -5,11 +5,10 @@
 ```{r message=FALSE, warning=FALSE}
 ##### LOAD PACKAGES
 library("bkmr")
-library("corrplot")
 library("ggplot2")
 library("beepr")
-library("modelsummary")
 library("table1")
+library("tidyverse")
 
 ```
 
@@ -45,13 +44,13 @@ PFAS_WT$race <- PFAS_WT$race2_mom_epi_epia_d
 PFAS_WT$income <- PFAS_WT$gt70k
 PFAS_WT$parity <- PFAS_WT$parity_d
 PFAS_WT$smoke <- PFAS_WT$smokpreg_final_d
-PFAS_WT$married <- PFAS_WT$married_cohab
+PFAS_WT$married <- PFAS_WT$married_velohab
 PFAS_WT$edu <- PFAS_WT$coll_grad
 PFAS_WT$fish <- PFAS_WT$fish_d_f1
 PFAS_WT$darkmeat <- PFAS_WT$dark_meat_f1
 
 # REFACTOR AND RELABEL 
-PFAS_WT$bmi_cat <- ifelse(PFAS_WT$bmi <18.5, 0,
+PFAS_WT$bmi_velat <- ifelse(PFAS_WT$bmi <18.5, 0,
                          ifelse(PFAS_WT$bmi >=18.5 & PFAS_WT$bmi < 25.0, 1, 
                                 ifelse(PFAS_WT$bmi >=25.0 & PFAS_WT$bmi < 30.0, 2, 
                                        ifelse(PFAS_WT$bmi >=30.0 & PFAS_WT$bmi < 35.0, 3,
@@ -72,7 +71,7 @@ PFAS_WT$married <- ifelse(PFAS_WT$married == 1, 1, 0)
 PFAS_WT$edu <- ifelse(PFAS_WT$edu == 1, 1, 0)
 
 # SET CATEGORICAL VARIABLES AS FACTORS
-PFAS_WT$bmi_cat <- as.factor(PFAS_WT$bmi_cat)
+PFAS_WT$bmi_velat <- as.factor(PFAS_WT$bmi_velat)
 PFAS_WT$race <- as.factor(PFAS_WT$race)
 PFAS_WT$income <- as.factor(PFAS_WT$income)
 PFAS_WT$parity <- as.factor(PFAS_WT$parity)
@@ -87,7 +86,7 @@ PFAS_WT$fish_s <- scale(PFAS_WT$fish)
 PFAS_WT$darkmeat_s <- scale(PFAS_WT$darkmeat)
 
 # ##### TABE 1
-# table1(~ age + menar + bmi + bmi_cat + race +  income + parity + smoke + 
+# table1(~ age + menar + bmi + bmi_velat + race +  income + parity + smoke + 
 #          married + edu + fish + darkmeat, data = PFAS_WT, overall = "Total")
 
 ```
@@ -125,7 +124,7 @@ knots_WT <- fields::cover.design(l2mixture_WT_z, nd = 110)$design
 ```
 
 ```{r}
-# ##### BUILD BKMR MODELS FOR SYSTOLIC BLOOD PRESSURE
+# ##### BUILD BKMR MODELS
 # # SIZE PARAMETER
 # m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
 #                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
@@ -177,266 +176,296 @@ ExtractPIPs(m2_WT, sel = sel_m2_WT)
 ```
 
 ```{r}
-##### RUN BKMR FUNCTIONS #####
+##### PREDICT UNIVARIATE EXPOSURE-RESPONSE FUNCTION
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+univar_mag <- PredictorResponseUnivar(fit = m1_WT, sel = sel_m1_WT, method = "approx")
 
-##### UNIVARIATE EXPOSURE-RESPONSE FUNCTIONS
-# SYSTOLIC BP, SIZE PARAMETER
-pred_univar_m1_WT <- PredictorResponseUnivar(fit = m1_WT, sel = sel_m1_WT, method = "approx")
-pred_univar_m1_WT
-
-# SYSTOLIC BP, VELOCITY PARAMETER
-pred_univar_m2_WT <- PredictorResponseUnivar(fit = m2_WT, sel = sel_m2_WT, method = "approx")
-pred_univar_m2_WT
+# WEIGHT TRAJECTORY VELOCITY
+univar_vel <- PredictorResponseUnivar(fit = m2_WT, sel = sel_m2_WT, method = "approx")
 
 
 
-##### BIVARIATE EXPOSURE-RESPONSE CURVE TO ASSESS POTENTIAL INTERACTIONS
-# SYSTOLIC BP, SIZE PARAMETER
-pred_bivar_m1_WT <- PredictorResponseBivar(fit = m1_WT, min.plot.dist = 1, sel = sel_m1_WT, method = "approx")
-
-# SYSTOLIC BP, VELOCITY PARAMETER
-pred_bivar_m2_WT <- PredictorResponseBivar(fit = m2_WT, min.plot.dist = 1, sel = sel_m2_WT, method = "approx")
-
-
-
-##### BIVARIATE INTERACTIONS AMONG PFAS
-# SYSTOLIC BP, SIZE PARAMETER
-pred_interact_m1_WT <- PredictorResponseBivarLevels(pred.resp.df = pred_bivar_m1_WT, Z = l2mixture_WT,
-                                                        both_pairs = T, qs = c(0.25, 0.50, 0.75))
-pred_interact_m1_WT_1090 <- PredictorResponseBivarLevels(pred.resp.df = pred_bivar_m1_WT, Z = l2mixture_WT, 
-                                                             both_pairs = TRUE, qs = c(0.10, 0.5, 0.90))
-
-# SYSTOLIC BP, VELOCITY PARAMETER
-pred_interact_m2_WT <- PredictorResponseBivarLevels(pred.resp.df = pred_bivar_m2_WT, Z = l2mixture_WT,
-                                                        both_pairs = T, qs = c(0.25, 0.50, 0.75))
-pred_interact_m2_WT_1090 <- PredictorResponseBivarLevels(pred.resp.df = pred_bivar_m2_WT, Z = l2mixture_WT, 
-                                                             both_pairs = TRUE, qs = c(0.10, 0.5, 0.90))
-
-
-
-##### OVERALL JOINT MIXTURE EFFECT
-# SYSTOLIC BP, SIZE PARAMETER
-risk_overall_m1_WT <- OverallRiskSummaries(fit = m1_WT, q.fixed = 0.50, sel = sel_m1_WT,
-                                               method = "approx", qs = seq(0.25, 0.75, by = 0.05))
-
-#SYSTOLIC BP, VELOCITY PARAMETER
-risk_overall_m2_WT <- OverallRiskSummaries(fit = m2_WT, q.fixed = 0.50, sel = sel_m2_WT, 
-                                               method = "approx", qs = seq(0.25, 0.75, by = 0.05))
-
-
-
-##### SINGLE PFAS EFFECT
-# SYSTOLIC BP, SIZE PARAMETER
-risks_singvar_m1_WT <- SingVarRiskSummaries(fit = m1_WT, qs.diff = c(0.25, 0.75),
-                                            q.fixed = c(0.25, 0.50, 0.75),sel=sel_m1_WT, method = "approx")
-
-#SYSTOLIC BP, VELOCITY PARAMETER
-risks_singvar_m2_WT <- SingVarRiskSummaries(fit = m2_WT, qs.diff = c(0.25, 0.75),
-                                            q.fixed = c(0.25, 0.50, 0.75),sel=sel_m2_WT, method = "approx")
-
-
-
-##### UNIVARIATE INTERACTIONS AMONG PFAS
-# SYSTOLIC BP, SIZE PARAMETER
-risks_overall_interact_m1_WT <- SingVarIntSummaries(fit = m1_WT, qs.diff = c(0.25, 0.75),
-                                       qs.fixed = c(0.25, 0.75),sel=sel_m1_WT)
-
-#SYSTOLIC BP, VELOCITY PARAMETER
-risks_overall_interact_m2_WT <- SingVarIntSummaries(fit = m2_WT, qs.diff = c(0.25, 0.75),
-                                       qs.fixed = c(0.25, 0.75),sel=sel_m2_WT)
-
-```
-
-```{r}
 ##### PLOT UNIVARIATE EXPOSURE-RESPONSE FUNCTION
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+uni1_WT <- ggplot(univar_mag, aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) + facet_wrap(~ variable) +
+  geom_smooth(stat = "identity", colour = 'black') + xlab("Plasma PFAS, log2(ng/mL)") + ylab("Weight magnitude (kg)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1) + theme(text = element_text(size = 25))
 
-m1_WT <- ggplot(pred_univar_m1_WT, aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + facet_wrap(~ variable) + ylab("Weight magnitude (kg)") + 
-  xlab("Plasma PFAS, log2(ng/mL)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1) + 
-  theme(text = element_text(size = 25), plot.title = element_text(hjust = 0.5, size = 25, face = "bold")) 
-#+ ggtitle("Size of SBP Trajectory")
+uni11_WT <- ggplot(univar_mag[1:50,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma PFOS, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m11_WT <- ggplot(pred_univar_m1_WT[1:50,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFOS, log2(ng/mL)") + 
-  ylab("Weight magnitude (kg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni12_WT <- ggplot(univar_mag[51:100,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma PFOA, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m12_WT <- ggplot(pred_univar_m1_WT[51:100,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFOA, log2(ng/mL)") + 
-  ylab("Weight magnitude (kg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni13_WT <- ggplot(univar_mag[101:150,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma PFNA, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m13_WT <- ggplot(pred_univar_m1_WT[101:150,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFNA, log2(ng/mL)") + 
-  ylab("Weight magnitude (kg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni14_WT <- ggplot(univar_mag[151:200,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma PFHxS, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m14_WT <- ggplot(pred_univar_m1_WT[151:200,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFHxS, log2(ng/mL)") + 
-  ylab("Weight magnitude (kg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni15_WT <- ggplot(univar_mag[201:250,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma MeFOSAA, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m15_WT <- ggplot(pred_univar_m1_WT[201:250,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma MeFOSAA, log2(ng/mL)") + 
-  ylab("Weight magnitude (kg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni16_WT <- ggplot(univar_mag[251:300,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma EtFOSAA, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m16_WT <- ggplot(pred_univar_m1_WT[251:300,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma EtFOSAA, log2(ng/mL)") + 
-  ylab("Weight magnitude (kg)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m1_WT
-m11_WT
-m12_WT
-m13_WT
-m14_WT
-m15_WT
-m16_WT
+uni1_WT
+uni11_WT
+uni12_WT
+uni13_WT
+uni14_WT
+uni15_WT
+uni16_WT
 
 
+# WEIGHT TRAJECTORY VELOCITY
+uni2_WT <- ggplot(univar_vel, aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) + facet_wrap(~ variable) +
+ geom_smooth(stat = "identity", colour = 'black') + xlab("Plasma PFAS, log2(ng/mL)") + ylab("Weight velocity (kg/year)") + 
+ geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1) + theme(text = element_text(size = 25))
 
-m2_WT <- ggplot(pred_univar_m2_WT, aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
- geom_smooth(stat = "identity", colour='black') + facet_wrap(~ variable) + ylab("Weight velocity (kg/year)") + 
-  xlab("Plasma PFAS, log2(ng/mL)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1) + 
-  theme(text = element_text(size = 25))
-#+ ggtitle("Velocity of SBP Trajectory")
+uni21_WT <- ggplot(univar_vel[1:50,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma PFOS, log2(ng/mL)") + ylab("Weight traj vel (kg/yr)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) +theme(text = element_text(size = 27))
 
-m21_WT <- ggplot(pred_univar_m2_WT[1:50,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFOS, log2(ng/mL)") + 
-  ylab("Weight velocity (kg/year)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) +
-  theme(text = element_text(size = 28))
+uni22_WT <- ggplot(univar_vel[51:100,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma PFOA, log2(ng/mL)") + ylab("Weight traj vel (kg/yr)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m22_WT <- ggplot(pred_univar_m2_WT[51:100,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFOA, log2(ng/mL)") + 
-  ylab("Weight velocity (kg/year)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni23_WT <- ggplot(univar_vel[101:150,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma PFNA, log2(ng/mL)") + ylab("Weight traj vel (kg/yr)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m23_WT <- ggplot(pred_univar_m2_WT[101:150,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFNA, log2(ng/mL)") + 
-  ylab("Weight velocity (kg/year)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni24_WT <- ggplot(univar_vel[151:200,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma PFHxS, log2(ng/mL)") + ylab("Weight traj vel (kg/yr)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m24_WT <- ggplot(pred_univar_m2_WT[151:200,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma PFHxS, log2(ng/mL)") + 
-  ylab("Weight velocity (kg/year)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni25_WT <- ggplot(univar_vel[201:250,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma MeFOSAA, log2(ng/mL)") + ylab("Weight traj vel (kg/yr)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
-m25_WT <- ggplot(pred_univar_m2_WT[201:250,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma MeFOSAA, log2(ng/mL)") + 
-  ylab("Weight velocity (kg/year)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
-
-m26_WT <- ggplot(pred_univar_m2_WT[251:300,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour='black') + theme_classic() + xlab("Plasma EtFOSAA, log2(ng/mL)") + 
-  ylab("Weight velocity (kg/year)") + geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + 
-  theme(text = element_text(size = 28))
+uni26_WT <- ggplot(univar_vel[251:300,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
+  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  xlab("Plasma EtFOSAA, log2(ng/mL)") + ylab("Weight traj vel (kg/yr)") + 
+  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 27))
 
 
-m2_WT
-m21_WT
-m22_WT
-m23_WT
-m24_WT
-m25_WT
-m26_WT
+uni2_WT
+uni21_WT
+uni22_WT
+uni23_WT
+uni24_WT
+uni25_WT
+uni26_WT
 
 ```
 
 ```{r}
+##### PREDICT BIVARIATE EXPOSURE-RESPONSE CURVE TO ASSESS POTENTIAL INTERACTIONS
+##### SUBESQUENTLY, PREDICT INTERACTIONS AMONG PFAS
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+bivar_mag <- PredictorResponseBivar(fit = m1_WT, min.plot.dist = 1, sel = sel_m1_WT, method = "approx")
+interact_mag <- PredictorResponseBivarLevels(pred.resp.df = bivar_mag, Z = l2mixture_WT,
+                                             both_pairs = T, qs = c(0.25, 0.50, 0.75))
+interact_mag_1090 <- PredictorResponseBivarLevels(pred.resp.df = bivar_mag, Z = l2mixture_WT,
+                                                  both_pairs = TRUE, qs = c(0.10, 0.5, 0.90))
+
+# WEIGHT TRAJECTORY VELOCITY
+bivar_vel <- PredictorResponseBivar(fit = m2_WT, min.plot.dist = 1, sel = sel_m2_WT, method = "approx")
+interact_vel <- PredictorResponseBivarLevels(pred.resp.df = bivar_vel, Z = l2mixture_WT,
+                                             both_pairs = T, qs = c(0.25, 0.50, 0.75))
+interact_vel_1090 <- PredictorResponseBivarLevels(pred.resp.df = bivar_vel, Z = l2mixture_WT, 
+                                                  both_pairs = TRUE, qs = c(0.10, 0.5, 0.90))
+
+
+
 ##### PLOT BIVARIATE INTERACTIONS
 ##### NON-PARALLEL LINES WOULD INDICATE POTENTIAL INTERACTIONS
-
-m1_interact_WT <- ggplot(pred_interact_m1_WT, aes(z1, est)) +
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+p_interact_mag <- ggplot(interact_mag, aes(z1, est)) + 
   geom_smooth(aes(col = quantile), stat = "identity") + 
   facet_grid(variable2 ~ variable1) + theme(
                axis.title.x=element_text(angle=0, color='black', size = 20),
                axis.title.y=element_text(angle=90, color='black', size = 20)) +
   xlab ("PFAS 1") +
-  ylab ("Weight magnitude (kg)") +
+  ylab ("Weight trajectory magnitude (kg)") +
   ggtitle("h(PFAS 1 | Quantiles of PFAS 2)") 
-m1_interact_WT
+p_interact_mag
 
 
-m2_interact_WT <- ggplot(pred_interact_m2_WT, aes(z1, est)) +
+# WEIGHT TRAJECTORY VELOCITY
+p_interact_vel <- ggplot(interact_vel, aes(z1, est)) +
   geom_smooth(aes(col = quantile), stat = "identity") + 
   facet_grid(variable2 ~ variable1) + theme(
                axis.title.x=element_text(angle=0, color='black', size = 20),
                axis.title.y=element_text(angle=90, color='black', size = 20)) +
   xlab ("PFAS 1") +
-  ylab ("SBP velocity (mmHg/week)") +
+  ylab ("Weight trajectory velocity (kg/week)") +
   ggtitle("h(PFAS 1 | Quantiles of PFAS 2)") 
-m2_interact_WT
+p_interact_vel 
 
 ```
 
 ```{r}
-##### PLOT THE OVERALL MIXTURE EFFECT
-m1_overall_WT <- ggplot(risk_overall_m1_WT, aes(quantile, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
-               geom_hline(yintercept = 00, linetype = "dashed", color = "red", linewidth = 1) +
-               geom_pointrange() +
-               scale_y_continuous(name = "Weight mag (kg)")+
-               xlab("PFAS quantile") +
-               theme_classic()+ theme(
-               axis.text.x=element_text(size=25),
-               axis.text.y=element_text(size=25),
-               axis.title.x=element_text(angle=0, color='black', size=25),
-               axis.title.y=element_text(angle=90, color='black', size=25))
-#plot.title = element_text(hjust = 0.5, size = 20, face = "bold")) + ggtitle("Magnitude of SBP Trajectory")
-m1_overall_WT
+##### DETERMINE RISK ASSOCIATED WITH THE OVERALL MIXTURE
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+overall_mag <- OverallRiskSummaries(fit = m1_WT, q.fixed = 0.50, sel = sel_m1_WT,
+                                    method = "approx", qs = seq(0.25, 0.75, by = 0.05))
+
+# WEIGHT TRAJECTORY VELOCITY
+overall_vel <- OverallRiskSummaries(fit = m2_WT, q.fixed = 0.50, sel = sel_m2_WT,
+                                    method = "approx", qs = seq(0.25, 0.75, by = 0.05))
 
 
-m2_overall_WT <- ggplot(risk_overall_m2_WT, aes(quantile, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
+
+##### PLOT RISK ASSOCIATED WITH THE OVERALL MIXTURE
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+p_overall_mag <- ggplot(overall_mag, aes(quantile, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
                geom_hline(yintercept = 00, linetype = "dashed", color = "red", linewidth = 1) +
                geom_pointrange() +
-               scale_y_continuous(name = "Weight vel (kg/year)")+
+               scale_y_continuous(name = "Weight traj mag (kg)") +
                xlab("PFAS quantile") +
-               theme_classic()+ theme(
-               axis.text.x=element_text(size=25),
-               axis.text.y=element_text(size=25),
-               axis.title.x=element_text(angle=0, color='black', size=25),
-               axis.title.y=element_text(angle=90, color='black', size=25))
-#plot.title = element_text(hjust = 0.5, size = 20, face = "bold")) + ggtitle("Velocity of SBP Trajectory")
-m2_overall_WT
+               theme_classic() + theme(
+               axis.text.x = element_text(size = 25),
+               axis.text.y = element_text(size = 25),
+               axis.title.x = element_text(angle = 0, color = 'black', size = 25),
+               axis.title.y = element_text(angle = 90, color = 'black', size = 25))
+p_overall_mag
+
+
+# WEIGHT TRAJECTORY VELOCITY
+p_overall_vel <- ggplot(overall_vel, aes(quantile, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
+               geom_hline(yintercept = 00, linetype = "dashed", color = "red", linewidth = 1) +
+               geom_pointrange() +
+               scale_y_continuous(name = "Weight traj vel (kg/year)") +
+               xlab("PFAS quantile") +
+               theme_classic() + theme(
+               axis.text.x = element_text(size = 25),
+               axis.text.y = element_text(size = 25),
+               axis.title.x = element_text(angle = 0, color = 'black', size = 25),
+               axis.title.y = element_text(angle = 90, color = 'black', size = 25))
+p_overall_vel
 
 ```
 
 ```{r}
+##### ESTIMATE SINGLE PFAS EFFECT
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+singvar_mag <- SingVarRiskSummaries(fit = m1_WT, qs.diff = c(0.25, 0.75),
+                                    q.fixed = c(0.25, 0.50, 0.75), sel = sel_m1_WT, method = "approx")
+singvar_mag
+singvar_mag2 <- SingVarRiskSummaries(fit = m1_WT, qs.diff = c(0.25, 0.75),
+                                    q.fixed = c(0.50), sel = sel_m1_WT, method = "approx")
+2.49203919 - 1.96*0.6835694
+2.49203919 + 1.96*0.6835694
+-1.71406655 - 1.96*0.4933906
+-1.71406655 + 1.96*0.4933906
+
+
+# WEIGHT TRAJECTORY VELOCITY
+singvar_vel <- SingVarRiskSummaries(fit = m2_WT, qs.diff = c(0.25, 0.75),
+                                    q.fixed = c(0.25, 0.50, 0.75), sel = sel_m2_WT, method = "approx")
+singvar_vel
+singvar_vel2 <- SingVarRiskSummaries(fit = m2_WT, qs.diff = c(0.25, 0.75),
+                                    q.fixed = c(0.50), sel = sel_m2_WT, method = "approx")
+0.042620697 - 1.96*0.03331712
+0.042620697 + 1.96*0.03331712
+-0.050115835 - 1.96*0.02461144
+-0.050115835 + 1.96*0.02461144
+
+
+
+
 ##### PLOT SINGLE PFAS EFFECT
 ##### HOLDING ALL OTHER PFAS AT THE 25TH, 50TH, 75TH PERCENTILES
-m1_overall_single_WT <- ggplot(risks_singvar_m1_WT, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd,
-                                col = q.fixed)) +theme(text = element_text(size = 25)) +
-  geom_hline(aes(yintercept=0), linetype="dashed", color = "black", linewidth = 1) +
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+p_singvar_mag <- ggplot(singvar_mag, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd,
+                                col = q.fixed)) + 
+  theme_bw() + theme(text = element_text(size = 23)) + theme(axis.title.y = element_blank()) +
+  scale_x_discrete(limits = c("EtFOSAA", "MeFOSAA", "PFHxS", "PFNA", "PFOA", "PFOS")) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed", color = "black", linewidth = 1) +
   geom_pointrange(position = position_dodge(width = 0.75)) + coord_flip() +
-  scale_x_discrete(name="Plasma PFAS") + scale_y_continuous(name="Weight magnitude (kg)")
-m1_overall_single_WT
+  scale_y_continuous(name = "Weight magnitude (kg)")
+p_singvar_mag
 
 
-m2_overall_single_WT <- ggplot(risks_singvar_m2_WT, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd,
-                                col = q.fixed)) + theme(text = element_text(size = 25)) +
-  geom_hline(aes(yintercept=0), linetype="dashed",  color = "black", linewidth = 1) +
+# WEIGHT TRAJECTORY VELOCITY
+p_singvar_vel <- ggplot(singvar_vel, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd,
+                                col = q.fixed)) + 
+  theme_bw() + theme(text = element_text(size = 23)) + theme(axis.title.y = element_blank()) +
+  scale_x_discrete(limits = c("EtFOSAA", "MeFOSAA", "PFHxS", "PFNA", "PFOA", "PFOS")) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed", color = "black", linewidth = 1) +
   geom_pointrange(position = position_dodge(width = 0.75)) + coord_flip() +
-  scale_x_discrete(name="Plasma PFAS") + scale_y_continuous(name="SBP velocity (mmHg/week)")
-m2_overall_single_WT
+  scale_y_continuous(name = "Weight velocity (mmHg/week)")
+p_singvar_vel
+
+
+
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+p_singvar_mag2 <- ggplot(singvar_mag2, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) + 
+  theme_bw() + theme(text = element_text(size = 23, color = "black")) + theme(axis.title.y = element_blank()) +
+  scale_x_discrete(limits = c("EtFOSAA", "MeFOSAA", "PFHxS", "PFNA", "PFOA", "PFOS")) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed", color = "red", linewidth = 1) +
+  geom_pointrange(position = position_dodge(width = 0.75)) + coord_flip() +
+  scale_y_continuous(name = "Weight magnitude (kg)")
+p_singvar_mag2
+
+
+# WEIGHT TRAJECTORY VELOCITY
+p_singvar_vel2 <- ggplot(singvar_vel2, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) + 
+  theme_bw() + theme(text = element_text(size = 23, color = "black")) + theme(axis.title.y = element_blank()) +
+  scale_x_discrete(limits = c("EtFOSAA", "MeFOSAA", "PFHxS", "PFNA", "PFOA", "PFOS")) +
+  geom_hline(aes(yintercept = 0), linetype = "dashed", color = "red", linewidth = 1) +
+  geom_pointrange(position = position_dodge(width = 0.75)) + coord_flip() +
+  scale_y_continuous(name = "Weight velocity (mmHg/week)")
+p_singvar_vel2
 
 ```
 
 ```{r}
+##### UNIVARIATE INTERACTIONS AMONG PFAS
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+overall_interact_mag <- SingVarIntSummaries(fit = m1_WT, qs.diff = c(0.25, 0.75), 
+                                            qs.fixed = c(0.25, 0.75), sel = sel_m1_WT)
+
+# WEIGHT TRAJECTORY VELOCITY
+overall_interact_vel <- SingVarIntSummaries(fit = m2_WT, qs.diff = c(0.25, 0.75), 
+                                            qs.fixed = c(0.25, 0.75), sel = sel_m2_WT)
+
+
+
 ##### PLOT UNIVARIATE INTERACTIONS
-m1_overall_interact_WT <- ggplot(risks_overall_interact_m1_WT, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
-  geom_pointrange(position = position_dodge(width = 0.75)) +
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+p_overall_interact_mag <- ggplot(overall_interact_mag, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
+  geom_pointrange(position = position_dodge(width = 0.75)) +theme(text = element_text(size = 25)) +
   geom_hline(yintercept = 0, lty = 2, color = "red", linewidth = 1) + coord_flip() +
-  ylab("Weight magnitude (kg)") + theme(text = element_text(size = 25)) +
+  ylab("Weight magnitude (kg)") +
   xlab("Plasma PFAS")
-m1_overall_interact_WT
+p_overall_interact_mag
 
 
-m2_overall_interact_WT <- ggplot(risks_overall_interact_m2_WT, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
-  geom_pointrange(position = position_dodge(width = 0.75)) +
-  geom_hline(yintercept = 0, lty = 2, color = "red", linewidth = 1) + coord_flip()+
-  ylab("SBP velocity (mmHg/week)") + theme(text = element_text(size = 25)) +
+# WEIGHT TRAJECTORY VELOCITY
+p_overall_interact_vel <- ggplot(overall_interact_vel, aes(variable, est, ymin = est - 1.96*sd, ymax = est + 1.96*sd)) +
+  geom_pointrange(position = position_dodge(width = 0.75)) + theme(text = element_text(size = 25)) +
+  geom_hline(yintercept = 0, lty = 2, color = "red", linewidth = 1) + coord_flip() +
+  ylab("Weight velocity (mmHg/week)") +
   xlab("Plasma PFAS")
-m2_overall_interact_WT
+p_overall_interact_vel
 
 ```
-

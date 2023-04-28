@@ -1,0 +1,183 @@
+#####                                                   #####
+##### RUN MIXTURES ANALYSIS WITH QUANTILE G-COMPUTATION #####
+#####                                                   #####
+
+```{r message=FALSE, warning=FALSE}
+##### LOAD PACKAGES
+library('qgcomp')
+library("tidyverse")
+library("knitr")
+library("ggplot2")
+
+```
+
+```{r}
+##### LOAD DATASET
+PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1.csv")
+SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR1.csv")
+
+##### MERGE DATASETS
+PFAS_WT <- merge(x = SITAR, y = PFAS, by = "aid", all.x = TRUE)
+PFAS_WT <- subset(PFAS_WT, select = -c(X.x, X.1, X.y))
+
+```
+
+```{r}
+##### TRANSFORM VARIABLES TO NUMERIC FOR QGC COVARIATE MATRIX
+
+# RENAME
+PFAS_WT$age <- PFAS_WT$age_mom_enroll_d
+PFAS_WT$menar <- PFAS_WT$mom_firstperiod_12y
+PFAS_WT$bmi <- PFAS_WT$bmi_mom_prepreg_d
+PFAS_WT$race <- PFAS_WT$race2_mom_epi_epia_d
+PFAS_WT$income <- PFAS_WT$gt70k
+PFAS_WT$parity <- PFAS_WT$parity_d
+PFAS_WT$smoke <- PFAS_WT$smokpreg_final_d
+PFAS_WT$married <- PFAS_WT$married_velohab
+PFAS_WT$edu <- PFAS_WT$coll_grad
+PFAS_WT$fish <- PFAS_WT$fish_d_f1
+PFAS_WT$darkmeat <- PFAS_WT$dark_meat_f1
+
+# REFACTOR AND RELABEL 
+PFAS_WT$bmi_velat <- ifelse(PFAS_WT$bmi <18.5, 0,
+                         ifelse(PFAS_WT$bmi >=18.5 & PFAS_WT$bmi < 25.0, 1, 
+                                ifelse(PFAS_WT$bmi >=25.0 & PFAS_WT$bmi < 30.0, 2, 
+                                       ifelse(PFAS_WT$bmi >=30.0 & PFAS_WT$bmi < 35.0, 3,
+                                              ifelse(PFAS_WT$bmi >=35.0, 4, NA)))))
+PFAS_WT$race <- ifelse(PFAS_WT$race == "white", 0,
+                      ifelse(PFAS_WT$race == "black", 1,
+                             ifelse(PFAS_WT$race == "hispa", 2,
+                                    ifelse(PFAS_WT$race == "asian", 3,
+                                           ifelse(PFAS_WT$race == "other", 4, 4)))))
+PFAS_WT$income <- ifelse(PFAS_WT$income == 1, 1, 0)
+PFAS_WT$parity <- ifelse(PFAS_WT$parity == 0, 0,
+                        ifelse(PFAS_WT$parity == 1, 1,
+                               ifelse(PFAS_WT$parity > 1, 2, 0)))
+PFAS_WT$smoke <- ifelse(PFAS_WT$smoke == "former", 0,
+                       ifelse(PFAS_WT$smoke == "smoke preg", 1,
+                              ifelse(PFAS_WT$smoke == "xnever", 2, 2)))
+PFAS_WT$married <- ifelse(PFAS_WT$married == 1, 1, 0)
+PFAS_WT$edu <- ifelse(PFAS_WT$edu == 1, 1, 0)
+
+# SET CATEGORICAL VARIABLES AS FACTORS
+PFAS_WT$bmi_velat <- as.factor(PFAS_WT$bmi_velat)
+PFAS_WT$race <- as.factor(PFAS_WT$race)
+PFAS_WT$income <- as.factor(PFAS_WT$income)
+PFAS_WT$parity <- as.factor(PFAS_WT$parity)
+PFAS_WT$smoke <- as.factor(PFAS_WT$smoke)
+PFAS_WT$married <- as.factor(PFAS_WT$married)
+PFAS_WT$edu <- as.factor(PFAS_WT$edu)
+
+# CENTER AND SCALE CONTINUOUS VARIABLES, SYSTOLIC BP
+PFAS_WT$age_s <- scale(PFAS_WT$age)
+PFAS_WT$menar_s <- scale(PFAS_WT$menar)
+PFAS_WT$fish_s <- scale(PFAS_WT$fish)
+PFAS_WT$darkmeat_s <- scale(PFAS_WT$darkmeat)
+
+# ##### TABE 1
+# table1(~ age + menar + bmi + bmi_velat + race +  income + parity + smoke + 
+#          married + edu + fish + darkmeat, data = PFAS_WT, overall = "Total")
+
+# PFAS_Qa <- subset(PFAS_WT, select = c(a, L2PFOS, L2PFOA, L2PFNA, L2PFHxS, L2MeFOSAA, L2EtFOSAA, 
+#                                       age_s, race, menar_s, smoke, parity, married, bmi_cat, smoke, fish_s))
+# PFAS_Qc <- subset(PFAS_WT, select = c(c, L2PFOS, L2PFOA, L2PFNA, L2PFHxS, L2MeFOSAA, L2EtFOSAA, 
+#                                       age_s, race, menar_s, smoke, parity, married, bmi_cat, smoke, fish_s))
+
+```
+
+```{r}
+##### PREPARE VARIABLES FOR BKMR MODELS #####
+
+# SAVE THE NAMES OF THE PFAS IN THE MIXTURE
+l2mix <- c("L2PFOS", "L2PFOA", "L2PFNA", "L2PFHxS", "L2MeFOSAA", "L2EtFOSAA")
+
+# # SAVE THE NAMES OF THE COVARIATES
+# cov <- c("age_enroll", "race", "menar", "income", "smoke", "parity", "married")
+
+# SET THE OUTCOME
+MAG <- PFAS_WT$a
+VEL <- PFAS_WT$c
+
+```
+
+```{r}
+##### BUILD QGC MODELS #####
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+qc_a1 <- qgcomp.noboot(MAG ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
+                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA,
+                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4)
+qc_a1
+
+
+qc_a2 <- qgcomp.boot(MAG ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
+                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA,
+                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4, B = 500, seed = 125)
+qc_a2
+
+qc_a22 <- qgcomp.boot(MAG ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
+                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA +
+                      L2PFOS^2 + L2PFOA^2 + L2PFNA^2 + L2PFHxS^2 + L2MeFOSAA^2 + L2EtFOSAA^2,
+                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4, B = 500, seed = 125, degree=2)
+qc_a22
+
+
+
+
+# WEIGHT TRAJECTORY VELOCITY
+qc_c1 <- qgcomp.noboot(VEL ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
+                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA,
+                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4)
+qc_c1
+
+qc_c2 <- qgcomp.boot(VEL ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
+                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA,
+                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4, B = 500, seed = 125)
+qc_c2
+
+qc_c22 <- qgcomp.boot(VEL ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
+                          L2PFOS^2 + L2PFOA^2 + L2PFNA^2 + L2PFHxS^2 + L2MeFOSAA^2 + L2EtFOSAA^2,
+                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4, B = 500, seed = 125, degree = 2)
+qc_c22
+
+```
+
+```{r}
+# ##### VIEW HOW EACH PFAS IS SCORED. THESE ARE QUANTIED EXPOSURES #####
+# head(qc_a1$qx)
+# head(qc_c1$qx)
+# head(l2qc_whr1$qx)
+# head(l2qc_muac1$qx)
+
+```
+
+```{r}
+##### PLOT WEIGHTS FOR EACH OUTCOME
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+plot(qc_a1)
+
+# WEIGHT TRAJECTORY VELOCITY
+plot(qc_c1)
+
+```
+
+```{r}
+##### PLOT...
+# WEIGHT TRAJECTORY SIZE (MAGNITUDE)
+plot(qc_a2) 
+plot(qc_a2, pointwiseref = 3)
+# pointwisebound.boot(qc_a2, pointwiseref=3)
+
+plot(qc_a22) 
+plot(qc_a22, pointwiseref = 3)
+# pointwisebound.boot(qc_a22, pointwiseref=3)
+
+# WEIGHT TRAJECTORY VELOCITY
+plot(qc_c2)
+plot(qc_c2, pointwiseref = 3)
+# pointwisebound.boot(qc_c2, pointwiseref=3)
+
+plot(qc_c22)
+plot(qc_c22, pointwiseref = 3)
+# pointwisebound.boot(qc_c22, pointwiseref=3)
+
+```

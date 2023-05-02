@@ -72,7 +72,9 @@ SITAR <- SITAR[, col_order]
 
 summary(SITAR$WT_13)
 summary(SITAR$WT_3)
-mean <- mean(SITAR$WT_13, na.rm = T) - mean(SITAR$WT_1, na.rm = T)
+summary(SITAR$WT_1)
+meanWT <- mean(SITAR$WT_13, na.rm = T) - mean(SITAR$WT_1, na.rm = T)
+sd(meanWT)
 
 ##### CONVERT DATASET FROM WIDE TO LONG FORMAT
 SITAR$aid <- as.factor(SITAR$aid)

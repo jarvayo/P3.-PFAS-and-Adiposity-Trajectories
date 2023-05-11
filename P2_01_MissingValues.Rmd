@@ -15,7 +15,7 @@ library("tidyverse")
 
 ```{r}
 ##### LOAD DATASET
-PFAS_NA <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_CL.sas7bdat")
+PFAS_NA <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.sas7bdat")
 
 ```
 
@@ -222,8 +222,8 @@ table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k +
 
 ```{r}
 ##### SAVE DATASET
-write.csv(PFAS_COMP,"C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_COMP.csv", row.names = T)
-write_sas(PFAS_COMP, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_COMP.sas7bdat")
+write.csv(PFAS_COMP,"C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_COMP.csv", row.names = T)
+# write_sas(PFAS_COMP, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_COMP.sas7bdat")
 # THE "COMP" AT THE END OF THE SAVED FILE NAMES INDICATE THAT THESE DATASETS ARE CLEAN AND HAVE NO MISSING DATA
 
 ```

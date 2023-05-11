@@ -4,17 +4,18 @@
 
 ```{r message=FALSE, warning=FALSE}
 ##### LOAD PACKAGES
-library('qgcomp')
+library("qgcomp")
 library("tidyverse")
 library("knitr")
 library("ggplot2")
+library("splines")
 
 ```
 
 ```{r}
 ##### LOAD DATASET
-PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1.csv")
-SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR1.csv")
+PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
+SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.csv")
 
 ##### MERGE DATASETS
 PFAS_WT <- merge(x = SITAR, y = PFAS, by = "aid", all.x = TRUE)
@@ -91,8 +92,8 @@ PFAS_WT$darkmeat_s <- scale(PFAS_WT$darkmeat)
 # SAVE THE NAMES OF THE PFAS IN THE MIXTURE
 l2mix <- c("L2PFOS", "L2PFOA", "L2PFNA", "L2PFHxS", "L2MeFOSAA", "L2EtFOSAA")
 
-# # SAVE THE NAMES OF THE COVARIATES
-# cov <- c("age_enroll", "race", "menar", "income", "smoke", "parity", "married")
+# SAVE THE NAMES OF THE COVARIATES
+cov <- c("age_s", "menar_s", "race", "bmi_cat", "parity", "married", "smoke", "fish_s")
 
 # SET THE OUTCOME
 MAG <- PFAS_WT$a
@@ -103,41 +104,41 @@ VEL <- PFAS_WT$c
 ```{r}
 ##### BUILD QGC MODELS #####
 # WEIGHT TRAJECTORY SIZE (MAGNITUDE)
-qc_a1 <- qgcomp.noboot(MAG ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
-                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA,
-                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4)
+qc_a1 <- qgcomp.noboot(MAG ~., expnms = l2mix, data = PFAS_WT[,c(l2mix, cov)], 
+                       family = gaussian(), q = 4)
 qc_a1
 
 
-qc_a2 <- qgcomp.boot(MAG ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
-                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA,
-                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4, B = 500, seed = 125)
+qc_a2 <- qgcomp.boot(MAG ~., expnms = l2mix, data = PFAS_WT[,c(l2mix, cov)], 
+                       family = gaussian(), q = 4, B = 1000, seed = 125, rr = FALSE)
 qc_a2
 
-qc_a22 <- qgcomp.boot(MAG ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
-                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA +
-                      L2PFOS^2 + L2PFOA^2 + L2PFNA^2 + L2PFHxS^2 + L2MeFOSAA^2 + L2EtFOSAA^2,
-                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4, B = 500, seed = 125, degree=2)
-qc_a22
+
+qc_a3 <- qgcomp.boot(MAG ~ age_s + menar_s + race + bmi_cat + parity + married + smoke + fish_s +
+                     bs(L2PFOS) + bs(L2PFOA) + bs(L2PFNA) + bs(L2PFHxS) + bs(L2MeFOSAA) + bs(L2EtFOSAA),
+                     expnms = l2mix, data = PFAS_WT, family = gaussian(), q = 4, B = 1000, seed = 125, 
+                     rr = FALSE, degree = 2)
+qc_a3
 
 
 
 
 # WEIGHT TRAJECTORY VELOCITY
-qc_c1 <- qgcomp.noboot(VEL ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
-                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA,
-                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4)
+qc_c1 <- qgcomp.noboot(VEL ~., expnms = l2mix, data = PFAS_WT[,c(l2mix, cov)], 
+                       family = gaussian(), q = 4)
 qc_c1
 
-qc_c2 <- qgcomp.boot(VEL ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
-                          L2PFOS + L2PFOA + L2PFNA + L2PFHxS + L2MeFOSAA + L2EtFOSAA,
-                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4, B = 500, seed = 125)
+
+qc_c2 <- qgcomp.boot(VEL ~., expnms = l2mix, data = PFAS_WT[,c(l2mix, cov)], 
+                       family = gaussian(), q = 4, B = 1000, seed = 125, rr = FALSE)
 qc_c2
 
-qc_c22 <- qgcomp.boot(VEL ~ age_s + race + menar_s + smoke + parity + married + bmi_cat + smoke + fish_s +
-                          L2PFOS^2 + L2PFOA^2 + L2PFNA^2 + L2PFHxS^2 + L2MeFOSAA^2 + L2EtFOSAA^2,
-                        expnms = l2mix, data = PFAS_WT, family=gaussian(), q=4, B = 500, seed = 125, degree = 2)
-qc_c22
+
+qc_c3 <- qgcomp.boot(VEL ~ age_s + menar_s + race + bmi_cat + parity + married + smoke + fish_s +
+                     bs(L2PFOS) + bs(L2PFOA) + bs(L2PFNA) + bs(L2PFHxS) + bs(L2MeFOSAA) + bs(L2EtFOSAA),
+                     expnms = l2mix, data = PFAS_WT, family = gaussian(), q = 4, B = 1000, seed = 125, 
+                     rr = FALSE, degree = 2)
+qc_c3
 
 ```
 
@@ -155,8 +156,56 @@ qc_c22
 # WEIGHT TRAJECTORY SIZE (MAGNITUDE)
 plot(qc_a1)
 
+qc_a1$pos.weights
+qc_a1$neg.weights
+qc_a1.pwts <- qc_a1$pos.weights
+qc_a1.nwts <- qc_a1$neg.weights*(-1)
+qc_a1.weights <- c(qc_a1.pwts, qc_a1.nwts)
+qc_a1.weights <- as.data.frame(qc_a1.weights)
+qc_a1.weights[ "PFAS" ] <- rownames(qc_a1.weights)
+qc_a1.weights <- qc_a1.weights %>%
+  mutate(PFAS_new = ifelse(PFAS == "L2PFOS", "PFOS", 
+                           ifelse(PFAS == "L2PFOA", "PFOA",
+                                  ifelse(PFAS == "L2PFNA", "PFNA", 
+                                         ifelse(PFAS == "L2PFHxS", "PFHxS",
+                                                ifelse(PFAS == "L2MeFOSAA", "MeFOSAA",
+                                                       ifelse(PFAS == "L2EtFOSAA", "EtFOSAA", NA))))))) %>%
+  mutate(weights_abs = ifelse(qc_a1.weights > 0, qc_a1.weights, qc_a1.weights*(-1)))
+
+theme_set(theme_bw())
+qc_a1_p <- ggplot(qc_a1.weights, aes(x = PFAS_new, y = qc_a1.weights*100)) + 
+  geom_col() + coord_flip() +
+  geom_label(aes(label = paste0(round(weights_abs*(100),1), "%")), vjust = 0.5, hjust = 0.5, size = 3) +
+  ylab("% contributions of indvidual PFAS to overall effect of mixture") + xlab("") +
+  theme(axis.text.y = element_text(size = 20), axis.text.x = element_text(size = 15)) 
+qc_a1_p
+
 # WEIGHT TRAJECTORY VELOCITY
 plot(qc_c1)
+
+qc_c1$pos.weights
+qc_c1$neg.weights
+qc_c1.pwts <- qc_c1$pos.weights
+qc_c1.nwts <- qc_c1$neg.weights*(-1)
+qc_c1.weights <- c(qc_c1.pwts, qc_c1.nwts)
+qc_c1.weights <- as.data.frame(qc_c1.weights)
+qc_c1.weights[ "PFAS" ] <- rownames(qc_c1.weights)
+qc_c1.weights <- qc_c1.weights %>%
+  mutate(PFAS_new = ifelse(PFAS == "L2PFOS", "PFOS", 
+                           ifelse(PFAS == "L2PFOA", "PFOA",
+                                  ifelse(PFAS == "L2PFNA", "PFNA", 
+                                         ifelse(PFAS == "L2PFHxS", "PFHxS",
+                                                ifelse(PFAS == "L2MeFOSAA", "MeFOSAA",
+                                                       ifelse(PFAS == "L2EtFOSAA", "EtFOSAA", NA))))))) %>%
+  mutate(weights_abs = ifelse(qc_c1.weights > 0, qc_c1.weights, qc_c1.weights*(-1)))
+
+theme_set(theme_bw())
+qc_c1_p <- ggplot(qc_c1.weights, aes(x = PFAS_new, y = qc_c1.weights*100)) + 
+  geom_col() + coord_flip() +
+  geom_label(aes(label = paste0(round(weights_abs*(100),1), "%")), vjust = 0.5, hjust = 0.5, size = 3) +
+  ylab("% contributions of indvidual PFAS to overall effect of mixture") + xlab("") +
+  theme(axis.text.y = element_text(size = 20), axis.text.x = element_text(size = 15)) 
+qc_c1_p
 
 ```
 
@@ -167,8 +216,8 @@ plot(qc_a2)
 plot(qc_a2, pointwiseref = 3)
 # pointwisebound.boot(qc_a2, pointwiseref=3)
 
-plot(qc_a22) 
-plot(qc_a22, pointwiseref = 3)
+plot(qc_a3) 
+plot(qc_a3, pointwiseref = 3)
 # pointwisebound.boot(qc_a22, pointwiseref=3)
 
 # WEIGHT TRAJECTORY VELOCITY
@@ -176,8 +225,8 @@ plot(qc_c2)
 plot(qc_c2, pointwiseref = 3)
 # pointwisebound.boot(qc_c2, pointwiseref=3)
 
-plot(qc_c22)
-plot(qc_c22, pointwiseref = 3)
+plot(qc_c3)
+plot(qc_c3, pointwiseref = 3)
 # pointwisebound.boot(qc_c22, pointwiseref=3)
 
 ```

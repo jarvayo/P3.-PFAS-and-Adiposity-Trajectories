@@ -15,10 +15,10 @@ library("dplyr")
 
 ```{r}
 ##### LOAD DATASET
-PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1.csv")
+PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
 
 ##### LOAD WORKSPACE
-load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR1.Rdata")
+load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
 
 ```
 
@@ -45,7 +45,6 @@ colnames(SITAR)[colnames(SITAR) == "DPP_RAV4"] <- "DPP_13"
 # colnames(SITAR)[colnames(SITAR) == "DPP_SR14"] <- "DPP_14"
 # colnames(SITAR)[colnames(SITAR) == "DPP_SR15"] <- "DPP_15"
 # colnames(SITAR)[colnames(SITAR) == "DPP_SR16"] <- "DPP_16"
-SITAR$DPP_2 <- SITAR$DPP_2/365
 
 colnames(SITAR)[colnames(SITAR) == "WT_RAV1"] <- "WT_1"
 colnames(SITAR)[colnames(SITAR) == "WTK_SR1"] <- "WT_2"
@@ -194,7 +193,7 @@ summary(m1_wt)
 
 ```{r}
 # ##### SAVE WORKSPACE FOR SITAR
-# save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR1.Rdata")
+# save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
 
 ```
 
@@ -244,7 +243,7 @@ legend('topleft', legend = c("Weight (kg)", "Weight change velocity (kg/week)"),
 ```{r}
 ##### SITAR MEAN WEIGHT TRAJECTORY AND 95% CI
 plot(m1_wt, opt = 'd', las = 1, apv = F, ylab = "Weight (kg)", xlab = "Time post index pregnanacy (years)", 
-     ylim = c(30, 150), y2par = list(lwd = 2), lwd = 2.5, main = "Mean Weight Trajectory (95% CI)")
+     ylim = c(30, 160), y2par = list(lwd = 2), lwd = 2.5, main = "Mean Weight Trajectory (95% CI)")
 lines(m1_wt, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
       apv = F, lwd = 2, lty = 2, col = 'deeppink', abc=(sqrt(diag(getVarCov(m1_wt)))*1.96))
 lines(m1_wt, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
@@ -257,7 +256,7 @@ lines(m1_wt, opt = 'd', y2par = list(col = 'deeppink', lwd = 2),
 
 ```{r}
 ##### GOODNESS OF FIT PLOT FOR SITAR MODELLING
-plot(WEIGHT ~ DPP, data = SITAR_LO, las = 1, col = "lightblue4", ylim = c(30,170),
+plot(WEIGHT ~ DPP, data = SITAR_LO, las = 1, col = "lightblue4", ylim = c(20,170),
      ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
      main = "Goodness of Fit Plot for SITAR Modeling")
 lines(m1_wt, opt = 'D', lty = 1, col="darkturquoise")
@@ -274,6 +273,6 @@ SITAR_LO_FIN <- SITAR_LO %>%
   arrange(DPP) %>% 
   filter(row_number()==1)
 
-write.csv(SITAR_LO_FIN, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR1.csv", row.names = T)
+write.csv(SITAR_LO_FIN, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.csv", row.names = T)
 
 ```

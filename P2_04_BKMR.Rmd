@@ -14,8 +14,8 @@ library("tidyverse")
 
 ```{r}
 ##### LOAD DATASET
-PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1.csv")
-SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR1.csv")
+PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
+SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.csv")
 
 ##### MERGE DATASETS
 PFAS_WT <- merge(x = SITAR, y = PFAS, by = "aid", all.x = TRUE)
@@ -44,13 +44,13 @@ PFAS_WT$race <- PFAS_WT$race2_mom_epi_epia_d
 PFAS_WT$income <- PFAS_WT$gt70k
 PFAS_WT$parity <- PFAS_WT$parity_d
 PFAS_WT$smoke <- PFAS_WT$smokpreg_final_d
-PFAS_WT$married <- PFAS_WT$married_velohab
+PFAS_WT$married <- PFAS_WT$married_cohab
 PFAS_WT$edu <- PFAS_WT$coll_grad
 PFAS_WT$fish <- PFAS_WT$fish_d_f1
 PFAS_WT$darkmeat <- PFAS_WT$dark_meat_f1
 
 # REFACTOR AND RELABEL 
-PFAS_WT$bmi_velat <- ifelse(PFAS_WT$bmi <18.5, 0,
+PFAS_WT$bmi_cat <- ifelse(PFAS_WT$bmi <18.5, 0,
                          ifelse(PFAS_WT$bmi >=18.5 & PFAS_WT$bmi < 25.0, 1, 
                                 ifelse(PFAS_WT$bmi >=25.0 & PFAS_WT$bmi < 30.0, 2, 
                                        ifelse(PFAS_WT$bmi >=30.0 & PFAS_WT$bmi < 35.0, 3,
@@ -71,7 +71,7 @@ PFAS_WT$married <- ifelse(PFAS_WT$married == 1, 1, 0)
 PFAS_WT$edu <- ifelse(PFAS_WT$edu == 1, 1, 0)
 
 # SET CATEGORICAL VARIABLES AS FACTORS
-PFAS_WT$bmi_velat <- as.factor(PFAS_WT$bmi_velat)
+PFAS_WT$bmi_cat <- as.factor(PFAS_WT$bmi_cat)
 PFAS_WT$race <- as.factor(PFAS_WT$race)
 PFAS_WT$income <- as.factor(PFAS_WT$income)
 PFAS_WT$parity <- as.factor(PFAS_WT$parity)
@@ -86,7 +86,7 @@ PFAS_WT$fish_s <- scale(PFAS_WT$fish)
 PFAS_WT$darkmeat_s <- scale(PFAS_WT$darkmeat)
 
 # ##### TABE 1
-# table1(~ age + menar + bmi + bmi_velat + race +  income + parity + smoke + 
+# table1(~ age + menar + bmi + bmi_cat + race +  income + parity + smoke + 
 #          married + edu + fish + darkmeat, data = PFAS_WT, overall = "Total")
 
 ```

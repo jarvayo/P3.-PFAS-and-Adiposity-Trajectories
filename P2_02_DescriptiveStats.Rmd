@@ -15,8 +15,8 @@ library("Hmisc")
 
 ```{r}
 ##### LOAD DATASET
-PFAS <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_COMP.csv")
-PFAS_X <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1_X.csv")
+PFAS <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_COMP.csv")
+PFAS_X <-read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_X.csv")
 
 ```
 
@@ -452,6 +452,6 @@ table1(~ DPP_RAV1 + WT_RAV1 + DPP_RAV2 + WT_RAV2 + DPP_RAV3 + WT_RAV3 + DPP_RAV4
 
 ```{r}
 ##### SAVE DATASET
-write.csv(PFAS, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1.csv", row.names = T)
+write.csv(PFAS, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv", row.names = T)
 
 ```

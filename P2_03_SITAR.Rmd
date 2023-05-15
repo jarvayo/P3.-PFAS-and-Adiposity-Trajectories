@@ -1,0 +1,279 @@
+#####                    #####
+##### RUN SITAR ANALYSIS #####
+#####                    #####
+
+```{r message=FALSE, warning=FALSE}
+##### LOAD PACKAGES
+library("nlme")
+library("sitar")
+library("data.table")
+library("ggplot2")
+library("tidyr")
+library("dplyr")
+
+```
+
+```{r}
+##### LOAD DATASET
+PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
+
+##### LOAD WORKSPACE
+load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
+
+```
+
+```{r}
+##### SUBSET ONLY VARIABLES NEEDED FOR SITAR
+SITAR <- subset(PFAS, select = c(aid, DPP_RAV1, WT_RAV1, DPP_RAV2, WT_RAV2, DPP_RAV3, WT_RAV3, 
+                                 DPP_RAV4, WT_RAV4, DPP_SR1, WTK_SR1, DPP_SR2, WTK_SR2, DPP_SR4, 
+                                 WTK_SR4, DPP_SR5, WTK_SR5, DPP_SR6, WTK_SR6, DPP_SR8, WTK_SR8, 
+                                 DPP_SR9, WTK_SR9, DPP_SR10, WTK_SR10, DPP_SR11, WTK_SR11)) 
+
+colnames(SITAR)[colnames(SITAR) == "DPP_RAV1"] <- "DPP_1"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR1"] <- "DPP_2"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR2"] <- "DPP_3"
+colnames(SITAR)[colnames(SITAR) == "DPP_RAV2"] <- "DPP_4"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR4"] <- "DPP_5"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR5"] <- "DPP_6"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR6"] <- "DPP_7"
+colnames(SITAR)[colnames(SITAR) == "DPP_RAV3"] <- "DPP_8"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR8"] <- "DPP_9"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR9"] <- "DPP_10"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR10"] <- "DPP_11"
+colnames(SITAR)[colnames(SITAR) == "DPP_SR11"] <- "DPP_12"
+colnames(SITAR)[colnames(SITAR) == "DPP_RAV4"] <- "DPP_13"
+# colnames(SITAR)[colnames(SITAR) == "DPP_SR14"] <- "DPP_14"
+# colnames(SITAR)[colnames(SITAR) == "DPP_SR15"] <- "DPP_15"
+# colnames(SITAR)[colnames(SITAR) == "DPP_SR16"] <- "DPP_16"
+
+colnames(SITAR)[colnames(SITAR) == "WT_RAV1"] <- "WT_1"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR1"] <- "WT_2"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR2"] <- "WT_3"
+colnames(SITAR)[colnames(SITAR) == "WT_RAV2"] <- "WT_4"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR4"] <- "WT_5"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR5"] <- "WT_6"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR6"] <- "WT_7"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR8"] <- "WT_8"
+colnames(SITAR)[colnames(SITAR) == "WT_RAV3"] <- "WT_9"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR9"] <- "WT_10"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR10"] <- "WT_11"
+colnames(SITAR)[colnames(SITAR) == "WTK_SR11"] <- "WT_12"
+colnames(SITAR)[colnames(SITAR) == "WT_RAV4"] <- "WT_13"
+# colnames(SITAR)[colnames(SITAR) == "WTK_SR14"] <- "WT_14"
+# colnames(SITAR)[colnames(SITAR) == "WTK_SR15"] <- "WT_15"
+# colnames(SITAR)[colnames(SITAR) == "WTK_SR16"] <- "WT_16"
+
+col_order <- c("aid", "DPP_1", "DPP_2", "DPP_3", "DPP_4", "DPP_5", "DPP_6", "DPP_7", "DPP_8", 
+               "DPP_9", "DPP_10", "DPP_11", "DPP_12", "DPP_13",
+               "WT_1", "WT_2", "WT_3", "WT_4", "WT_5", "WT_6", "WT_7", "WT_8", 
+               "WT_9", "WT_10", "WT_11", "WT_12", "WT_13")
+SITAR <- SITAR[, col_order]
+
+summary(SITAR$WT_13)
+summary(SITAR$WT_3)
+summary(SITAR$WT_1)
+meanWT <- mean(SITAR$WT_13, na.rm = T) - mean(SITAR$WT_1, na.rm = T)
+sd(meanWT)
+
+##### CONVERT DATASET FROM WIDE TO LONG FORMAT
+SITAR$aid <- as.factor(SITAR$aid)
+
+# BY DAYS POST INDEX PREGNANCY
+SITAR_L <- gather(SITAR, DPP, WEIGHT, WT_1:WT_13, factor_key=TRUE)
+SITAR_L <- SITAR_L[order(SITAR_L$aid),]
+SITAR_L$DPP <- ifelse(SITAR_L$DPP == "WT_1", SITAR_L$DPP_1,
+                         ifelse(SITAR_L$DPP == "WT_2", SITAR_L$DPP_2,
+                         ifelse(SITAR_L$DPP == "WT_3", SITAR_L$DPP_3,
+                         ifelse(SITAR_L$DPP == "WT_4", SITAR_L$DPP_4,
+                         ifelse(SITAR_L$DPP == "WT_5", SITAR_L$DPP_5,
+                         ifelse(SITAR_L$DPP == "WT_6", SITAR_L$DPP_6,
+                         ifelse(SITAR_L$DPP == "WT_7", SITAR_L$DPP_7,
+                         ifelse(SITAR_L$DPP == "WT_8", SITAR_L$DPP_8,
+                         ifelse(SITAR_L$DPP == "WT_9", SITAR_L$DPP_9,
+                         ifelse(SITAR_L$DPP == "WT_10", SITAR_L$DPP_10,
+                         ifelse(SITAR_L$DPP == "WT_11", SITAR_L$DPP_11,
+                         ifelse(SITAR_L$DPP == "WT_12", SITAR_L$DPP_12,
+                         ifelse(SITAR_L$DPP == "WT_13", SITAR_L$DPP_13, NA)))))))))))))
+SITAR_L <- subset(SITAR_L, select = c(aid, DPP, WEIGHT))
+SITAR_L <- na.omit(SITAR_L)
+SITAR_L <- SITAR_L[order(SITAR_L[,1], SITAR_L[,2] ),]
+
+
+# # BY AGE
+# SITAR_AGE <- gather(SITAR, AGE, WEIGHT, WT_RAV1:WT_RAV4, factor_key=TRUE)
+# SITAR_AGE <- SITAR_AGE[order(SITAR_AGE$aid),]
+# SITAR_AGE$AGE <- ifelse(SITAR_AGE$AGE == "WT_RAV1", SITAR_AGE$AGE_RAV1,
+#                          ifelse(SITAR_AGE$AGE == "WT_RAV2", SITAR_AGE$AGE_RAV2,
+#                                 ifelse(SITAR_AGE$AGE == "WT_RAV3", SITAR_AGE$AGE_RAV3,
+#                                        ifelse(SITAR_AGE$AGE == "WT_RAV4", SITAR_AGE$AGE_RAV4, NA))))
+# SITAR_AGE <- subset(SITAR_AGE, select = c(aid, AGE, WEIGHT))
+# SITAR_AGE <- na.omit(SITAR_AGE)
+
+```
+
+```{r}
+# ##### ADD A YEARLY SCALE
+# SITAR_L$YR_WT <- ifelse(SITAR_L$DPP >0 & SITAR_L$DPP <=2, 1,
+#                          ifelse(SITAR_L$DPP >2 & SITAR_L$DPP <=3, 2,
+#                          ifelse(SITAR_L$DPP >3 & SITAR_L$DPP <=4, 3,
+#                          ifelse(SITAR_L$DPP >4 & SITAR_L$DPP <=5, 4,
+#                          ifelse(SITAR_L$DPP >5 & SITAR_L$DPP <=6, 5,
+#                          ifelse(SITAR_L$DPP >6 & SITAR_L$DPP <=7, 6, 
+#                          ifelse(SITAR_L$DPP >7 & SITAR_L$DPP <=8, 7, 
+#                          ifelse(SITAR_L$DPP >8 & SITAR_L$DPP <=9, 8,
+#                          ifelse(SITAR_L$DPP >9 & SITAR_L$DPP <=10, 9, 
+#                          ifelse(SITAR_L$DPP >10 & SITAR_L$DPP <=11, 10,
+#                          ifelse(SITAR_L$DPP >11 & SITAR_L$DPP <=12, 11,
+#                          ifelse(SITAR_L$DPP >12 & SITAR_L$DPP <=13, 12,
+#                          ifelse(SITAR_L$DPP >13 & SITAR_L$DPP <=14, 13,
+#                          ifelse(SITAR_L$DPP >14 & SITAR_L$DPP <=15, 14,
+#                          ifelse(SITAR_L$DPP >15 & SITAR_L$DPP <=16, 15,
+#                          ifelse(SITAR_L$DPP >16 & SITAR_L$DPP <=17, 16, 0))))))))))))))))
+# summary(SITAR_L$YR_WT)
+# table(SITAR_L$YR_WT)
+
+# ##### ADD A BI-YEARLY SCALE
+# SITAR_L$YR2_WT <- ifelse(SITAR_L$DPP >0 & SITAR_L$DPP <=0.5, 0.5,
+#                          ifelse(SITAR_L$DPP >0.5 & SITAR_L$DPP <=2, 2,
+#                          ifelse(SITAR_L$DPP >2 & SITAR_L$DPP <=4, 4,
+#                          ifelse(SITAR_L$DPP >4 & SITAR_L$DPP <=6, 6,
+#                          ifelse(SITAR_L$DPP >6 & SITAR_L$DPP <=8, 8,
+#                          ifelse(SITAR_L$DPP >8 & SITAR_L$DPP <=10, 10,
+#                          ifelse(SITAR_L$DPP >10 & SITAR_L$DPP <=12, 12, 
+#                          ifelse(SITAR_L$DPP >12 & SITAR_L$DPP <=14, 14, 
+#                          ifelse(SITAR_L$DPP >14 & SITAR_L$DPP <=16, 16,
+#                          ifelse(SITAR_L$DPP >16 & SITAR_L$DPP <=18, 18, 0))))))))))
+# summary(SITAR_L$YR2_WT)
+# table(SITAR_L$YR2_WT)
+
+```
+
+```{r}
+##### IDENTIFY WEIGHT MEASUREMENT OUTLIERS
+outliers_dpp <- velout(x = DPP, y = WEIGHT, id = aid, data = SITAR_L, limit = 4)
+
+## SET 9 WEIGHT OUTLIERS MISSING
+SITAR_LO <- zapvelout(outliers_dpp, icode = c(4))
+SITAR_LO <- na.omit(SITAR_LO)
+
+# outliers_age <- velout(x = AGE, y = WEIGHT, id = aid, data = SITAR_AGE, limit = 3)
+# 
+# ## SET 114 WEIGHT OUTLIERS MISSING
+# SIT_AGE <- zapvelout(outliers_age, icode = c(4, 6))
+# SIT_AGE <- subset(SIT_AGE, !is.na(SIT_AGE$WEIGHT))
+
+```
+
+```{r}
+##### CHECK DEGREES OF FREEDOM
+# dfset(AGE, WEIGHT, SIT_AGE, FUN = BIC) # DF = 2
+# dfset(DPP, WEIGHT, SITAR_L, FUN = BIC) # DF = 2
+
+```
+
+```{r}
+##### FIT SITAR MODEL
+# m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
+
+# m2_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a', random='a+c')
+# m3_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+b+c', random='a+c')
+# m4_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+b+c')
+# m5_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+b+c', random='a+b+c')
+
+##### SUMMARIES
+#print(m1_wt)
+summary(m1_wt)
+69.31929 - 1.96*0.4692629
+69.31929 + 1.96*0.4692629
+
+0.13991 - 1.96*0.2384574
+0.13991 + 1.96*0.2384574
+summary(SITAR_LO$DPP)
+
+```
+
+```{r}
+# ##### SAVE WORKSPACE FOR SITAR
+# save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
+
+```
+
+```{r}
+# ##### RANDOM EFFECTS FOR SYSTOLIC AND DIASTOLIC BP
+# # ranef(m1_wt) # SITAR random effects
+# 
+# # ATTACH THE RANDOM EFFECTS A AND C TO THE DATASET
+# random_coef <- as.data.frame(m1_wt$coefficients$random$id)
+# random_coef$aid <- as.numeric(rownames(random_coef))
+# SITAR_LO <- merge(SITAR_LO, random_coef, by = "aid")
+# SITAR_LO$a_wt <- SITAR_LO$a
+# SITAR_LO$c_wt <- SITAR_LO$c
+# 
+# # ASSESS DISTRIBUTION OF RANDOM EFFECTS
+# hist(SITAR_LO$a_wt)
+# hist(SITAR_LO$c_wt)
+
+```
+
+```{r}
+##### UNADJUSTED AND ADJUSTED PFAS PLOTS
+mplot(x = DPP, y = WEIGHT, id = aid, col = aid, data = SITAR_LO,
+      las = 1, cex.lab = 1.5, cex.axis = 1.5, 
+      ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
+      main = "Undjusted Weight Trajectories")
+
+plot(m1_wt, opt = 'a', las = 1, cex.lab = 1.5, cex.axis = 1.5, col = aid, 
+     ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
+     main = "Adjusted Weight Trajectories")
+
+```
+
+```{r}
+##### SITAR MEAN SYSTOLIC BP TRAJECTORY AND MEAN TRAJECTORY VELOCITY PLOTS
+plot(m1_wt, opt = 'dv', las = 1, col = "deepskyblue3", lwd = 3, 
+     y2par = list(col = 'navyblue', lwd = 3, lty = 5), ylim = c(68,80),
+     vlab = "", ylab = "", xlab = "", main = "Mean Weight Trajectory and Velocity", cex.axis = 1, cex.lab = 1)
+mtext("Time post index pregnancy (years)", side = 1, line = 2)
+mtext("Weight (kg)", side = 2, line = 3.25)
+mtext("Weight change velocity (kg/year)", side = 4, line = 2.6)
+legend('topleft', legend = c("Weight (kg)", "Weight change velocity (kg/week)"), 
+       text.col = c("deepskyblue3", "navyblue"),lty=1:5, col = c("deepskyblue3", "navyblue"), cex = 1, inset=0.04)
+
+```
+
+```{r}
+##### SITAR MEAN WEIGHT TRAJECTORY AND 95% CI
+plot(m1_wt, opt = 'd', las = 1, apv = F, ylab = "Weight (kg)", xlab = "Time post index pregnanacy (years)", 
+     ylim = c(30, 160), y2par = list(lwd = 2), lwd = 2.5, main = "Mean Weight Trajectory (95% CI)")
+lines(m1_wt, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
+      apv = F, lwd = 2, lty = 2, col = 'deeppink', abc=(sqrt(diag(getVarCov(m1_wt)))*1.96))
+lines(m1_wt, opt = 'd', y2par = list(col = 'deeppink', lwd = 2), 
+      apv = F, lwd = 2, lty = 2, col = 'deeppink', abc=(sqrt(diag(getVarCov(m1_wt)))*-1.96))
+# legend("topleft", c( "Mean change trajectory", "Upper 95% CI", "Lower 95% CI"),
+#        col = c("black", "deeppink", "turquoise3"), lty = c(1, 2, 2))
+
+```
+
+
+```{r}
+##### GOODNESS OF FIT PLOT FOR SITAR MODELLING
+plot(WEIGHT ~ DPP, data = SITAR_LO, las = 1, col = "lightblue4", ylim = c(20,170),
+     ylab = "Weight (kg)", xlab = "Time post index pregnancy (years)",
+     main = "Goodness of Fit Plot for SITAR Modeling")
+lines(m1_wt, opt = 'D', lty = 1, col="darkturquoise")
+lines(m1_wt, opt = 'd', lwd=2, lty = 2, col="red")
+legend('bottomright', c('Observed', 'Fitted trajectory', 'SITAR mean trajectory'),
+       lty = c(NA, 1, 2), pch=c(1,NA,NA), col = c("lightblue4", "turquoise4", "red"), cex = 0.8, inset=0.04) 
+
+```
+
+```{r}
+##### SAVE DATASET
+SITAR_LO_FIN <- SITAR_LO %>% 
+  group_by(aid) %>% 
+  arrange(DPP) %>% 
+  filter(row_number()==1)
+
+write.csv(SITAR_LO_FIN, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.csv", row.names = T)
+
+```

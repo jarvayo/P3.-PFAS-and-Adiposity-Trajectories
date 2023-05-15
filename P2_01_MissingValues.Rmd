@@ -215,8 +215,8 @@ PFAS_COMP$WTK_SR11 <- ifelse(PFAS_COMP$WTK_SR11 == 9999, NA, PFAS_COMP$WTK_SR11)
 table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
          dark_meat_f1, data = PFAS_COMP, overall="Total")
 
-table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k + 
-         parity_cat + married_cohab, data = PFAS_COMP, overall="Total")
+table1(~ race2_mom_epi_epia_d + bmi_cat + gt70k + parity_cat + married_cohab + 
+         smokpreg_final_d + coll_grad, data = PFAS_COMP, overall="Total")
 
 ```
 

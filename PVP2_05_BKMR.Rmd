@@ -131,7 +131,7 @@ m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family 
 beep(sound = 5, expr = NULL)
 
 # VELOCITY PARAMETER
-m3_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
+m2_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
 beep(sound = 5, expr = NULL)
 

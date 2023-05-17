@@ -229,7 +229,8 @@ ad.m.a <- list(
 modelsummary(ad.m.a, fmt = 2,
              estimate = "{estimate}{stars}",
              statistic = c("SE: {std.error}",
-                           "95% CI: [{conf.low}, {conf.high}]"),
+                           "95% CI: [{conf.low}, {conf.high}]",
+                           "p = {p.value}"),
              coef_omit = "Interc", title = "PFAS vs. WEIGHT TRAJECTORY MAGNITUDE")
 
 
@@ -253,7 +254,8 @@ ad.m.c <- list(
 modelsummary(ad.m.c, fmt = 2,
              estimate = "{estimate}{stars}",
              statistic = c("SE: {std.error}",
-                           "95% CI: [{conf.low}, {conf.high}]"),
+                           "95% CI: [{conf.low}, {conf.high}]",
+                           "p = {p.value}"),
              coef_omit = "Interc", title = "PFAS vs. WEIGHT TRAJECTORY VELOCITY")
 
 ```

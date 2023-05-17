@@ -8,6 +8,7 @@ library("dplyr")
 library("sas7bdat")
 library("haven")
 library("data.table")
+library("readxl")
 
 ```
 
@@ -15,10 +16,12 @@ library("data.table")
 ##### LOAD DATASET
 PFAS <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_030823.sas7bdat")
 FFQ <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_062922_FFQ.sas7bdat")
+DIET <- read_excel("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/DIET.xlsx")
 
 # ADD FFQ VARIABLES TO PFAS DATASET
 FFQ <- subset(FFQ, select = c(aid, fish_d_f1, dark_meat_f1))
 PFAS <- merge(PFAS, FFQ, by = "aid")
+PFAS <- merge(PFAS, DIET, by = "aid")
 
 ```
 

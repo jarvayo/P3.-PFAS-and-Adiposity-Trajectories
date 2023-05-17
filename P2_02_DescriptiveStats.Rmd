@@ -106,6 +106,8 @@ PFAS$DPP_SR11 <- PFAS$DPP_SR11/365
 ```{r}
 ##### RENAME
 PFAS$age_enroll <- PFAS$age_mom_enroll_d
+PFAS$gestage_enroll <- PFAS$g_age_days_COLL_D_BLD1
+  PFAS$gestage_enroll <- PFAS$gestage_enroll / 7
 PFAS$menar <- PFAS$mom_firstperiod_12y
 PFAS$bmi <- PFAS$bmi_mom_prepreg_d
 PFAS$race <- PFAS$race2_mom_epi_epia_d
@@ -168,6 +170,7 @@ PFAS$edu <- factor(PFAS$edu,
 
 ##### LABEL
 label(PFAS$age_enroll) <- "Maternal age at enrollment"
+label(PFAS$gestage_enroll) <- "Gestational age at enrollment"
 label(PFAS$menar) <- "Age at first menarche"
 label(PFAS$bmi) <- "Pre-pregnancy BMI"
 label(PFAS$bmi_cat) <- "Pre-pregnancy BMI"
@@ -183,6 +186,7 @@ label(PFAS$darkmeat) <- "Dark meat consumption"
 
 ##### ADD UNITS
 units(PFAS$age_enroll)  <- "years"
+units(PFAS$gestage_enroll)  <- "weeks"
 units(PFAS$menar) <- "years"
 units(PFAS$bmi)  <- "kg/m2"
 units(PFAS$bmi_cat)  <- "kg/m2"
@@ -190,7 +194,7 @@ units(PFAS$fish) <- "servings/week"
 units(PFAS$darkmeat) <- "servings/week"
 
 ##### TABE 1
-table1(~ age_enroll + menar + bmi + bmi_cat + race +  income + parity + smoke + 
+table1(~ age_enroll + gestage_enroll + menar + bmi + bmi_cat + race +  income + parity + smoke + 
          married + edu + fish + darkmeat, data = PFAS, overall = "Total")
 
 ```

@@ -5,17 +5,18 @@
 ```{r message=FALSE, warning=FALSE}
 ##### LOAD PACKAGES
 library("ggplot2")
-library("LME")
+# library("LME")
 library("tidyr")
 library("data.table")
 library("lme4")
 library("dplyr")
+library("sitar")
 
 ```
 
 ```{r}
 ##### LOAD DATASET
-PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS1.csv")
+PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
 
 ```
 
@@ -24,8 +25,7 @@ PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajecto
 LME <- subset(PFAS, select = c(aid, DPP_RAV1, WT_RAV1, DPP_RAV2, WT_RAV2, DPP_RAV3, WT_RAV3, 
                                  DPP_RAV4, WT_RAV4, DPP_SR1, WTK_SR1, DPP_SR2, WTK_SR2, DPP_SR4, 
                                  WTK_SR4, DPP_SR5, WTK_SR5, DPP_SR6, WTK_SR6, DPP_SR8, WTK_SR8, 
-                                 DPP_SR9, WTK_SR9, DPP_SR10, WTK_SR10, DPP_SR11, WTK_SR11, DPP_SR14, 
-                                 WTK_SR14, DPP_SR15, WTK_SR15, DPP_SR16, WTK_SR16)) 
+                                 DPP_SR9, WTK_SR9, DPP_SR10, WTK_SR10, DPP_SR11, WTK_SR11)) 
 
 colnames(LME)[colnames(LME) == "DPP_RAV1"] <- "DPP_1"
 colnames(LME)[colnames(LME) == "DPP_SR1"] <- "DPP_2"
@@ -40,10 +40,10 @@ colnames(LME)[colnames(LME) == "DPP_SR9"] <- "DPP_10"
 colnames(LME)[colnames(LME) == "DPP_SR10"] <- "DPP_11"
 colnames(LME)[colnames(LME) == "DPP_SR11"] <- "DPP_12"
 colnames(LME)[colnames(LME) == "DPP_RAV4"] <- "DPP_13"
-colnames(LME)[colnames(LME) == "DPP_SR14"] <- "DPP_14"
-colnames(LME)[colnames(LME) == "DPP_SR15"] <- "DPP_15"
-colnames(LME)[colnames(LME) == "DPP_SR16"] <- "DPP_16"
-LME$DPP_2 <- LME$DPP_2/365
+# colnames(LME)[colnames(LME) == "DPP_SR14"] <- "DPP_14"
+# colnames(LME)[colnames(LME) == "DPP_SR15"] <- "DPP_15"
+# colnames(LME)[colnames(LME) == "DPP_SR16"] <- "DPP_16"
+
 
 colnames(LME)[colnames(LME) == "WT_RAV1"] <- "WT_1"
 colnames(LME)[colnames(LME) == "WTK_SR1"] <- "WT_2"
@@ -58,14 +58,14 @@ colnames(LME)[colnames(LME) == "WTK_SR9"] <- "WT_10"
 colnames(LME)[colnames(LME) == "WTK_SR10"] <- "WT_11"
 colnames(LME)[colnames(LME) == "WTK_SR11"] <- "WT_12"
 colnames(LME)[colnames(LME) == "WT_RAV4"] <- "WT_13"
-colnames(LME)[colnames(LME) == "WTK_SR14"] <- "WT_14"
-colnames(LME)[colnames(LME) == "WTK_SR15"] <- "WT_15"
-colnames(LME)[colnames(LME) == "WTK_SR16"] <- "WT_16"
+# colnames(LME)[colnames(LME) == "WTK_SR14"] <- "WT_14"
+# colnames(LME)[colnames(LME) == "WTK_SR15"] <- "WT_15"
+# colnames(LME)[colnames(LME) == "WTK_SR16"] <- "WT_16"
 
 col_order <- c("aid", "DPP_1", "DPP_2", "DPP_3", "DPP_4", "DPP_5", "DPP_6", "DPP_7", "DPP_8", 
-               "DPP_9", "DPP_10", "DPP_11", "DPP_12", "DPP_13", "DPP_14", "DPP_15", "DPP_16",
+               "DPP_9", "DPP_10", "DPP_11", "DPP_12", "DPP_13",
                "WT_1", "WT_2", "WT_3", "WT_4", "WT_5", "WT_6", "WT_7", "WT_8", 
-               "WT_9", "WT_10", "WT_11", "WT_12", "WT_13", "WT_14", "WT_15", "WT_16")
+               "WT_9", "WT_10", "WT_11", "WT_12", "WT_13")
 LME <- LME[, col_order]
 
 
@@ -73,7 +73,7 @@ LME <- LME[, col_order]
 LME$aid <- as.factor(LME$aid)
 
 # BY DAYS POST INDEX PREGNANCY
-LME_L <- gather(LME, DPP, WEIGHT, WT_1:WT_16, factor_key=TRUE)
+LME_L <- gather(LME, DPP, WEIGHT, WT_1:WT_13, factor_key=TRUE)
 LME_L <- LME_L[order(LME_L$aid),]
 LME_L$DPP <- ifelse(LME_L$DPP == "WT_1", LME_L$DPP_1,
                          ifelse(LME_L$DPP == "WT_2", LME_L$DPP_2,
@@ -87,10 +87,7 @@ LME_L$DPP <- ifelse(LME_L$DPP == "WT_1", LME_L$DPP_1,
                          ifelse(LME_L$DPP == "WT_10", LME_L$DPP_10,
                          ifelse(LME_L$DPP == "WT_11", LME_L$DPP_11,
                          ifelse(LME_L$DPP == "WT_12", LME_L$DPP_12,
-                         ifelse(LME_L$DPP == "WT_13", LME_L$DPP_13,
-                         ifelse(LME_L$DPP == "WT_14", LME_L$DPP_14,
-                         ifelse(LME_L$DPP == "WT_15", LME_L$DPP_15,
-                         ifelse(LME_L$DPP == "WT_16", LME_L$DPP_16, NA))))))))))))))))
+                         ifelse(LME_L$DPP == "WT_13", LME_L$DPP_13, NA)))))))))))))
 LME_L <- subset(LME_L, select = c(aid, DPP, WEIGHT))
 LME_L <- na.omit(LME_L)
 LME_L <- LME_L[order(LME_L[,1], LME_L[,2] ),]
@@ -175,11 +172,11 @@ LME_L$Time18 <- ifelse(LME_L$YR_WT == 17, 17, 0)
 
 ```{r}
 ##### IDENTIFY WEIGHT MEASUREMENT OUTLIERS
-outliers <- velout(x = DPP, y = WEIGHT, id = aid, data = LME_L, limit = 7)
+outliers <- velout(x = DPP, y = WEIGHT, id = aid, data = LME_L, limit = 5)
 
 # SET 96 WEIGHT OUTLIERS MISSING
-LME_LO <- zapvelout(outliers, icode = c(6))
-LME_LO <- subset(LME_LO, !is.na(LME_LO$WEIGHT))
+LME_LO <- zapvelout(outliers, icode = c(4))
+LME_LO <- na.omit(LME_LO)
 
 ```
 
@@ -251,6 +248,6 @@ LME_LO_FIN <- LME_LO %>%
   arrange(YR_WT) %>% 
   filter(row_number()==1)
 
-write.csv(LME_LO_FIN, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_LME1.csv", row.names = T)
+write.csv(LME_LO_FIN, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_LME.csv", row.names = T)
 
 ```

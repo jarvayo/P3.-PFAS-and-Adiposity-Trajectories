@@ -18,7 +18,7 @@ library("dplyr")
 PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
 
 ##### LOAD WORKSPACE
-load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
+load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR2.Rdata")
 
 ```
 
@@ -71,8 +71,9 @@ SITAR <- SITAR[, col_order]
 
 summary(SITAR$WT_13)
 summary(SITAR$WT_3)
+summary(SITAR$WT_2)
 summary(SITAR$WT_1)
-meanWT <- mean(SITAR$WT_13, na.rm = T) - mean(SITAR$WT_1, na.rm = T)
+meanWT <- mean(SITAR$WT_13, na.rm = T) - mean(SITAR$WT_2, na.rm = T)
 sd(meanWT)
 
 ##### CONVERT DATASET FROM WIDE TO LONG FORMAT
@@ -173,7 +174,7 @@ dfset(DPP, WEIGHT, SITAR_L, FUN = BIC) # DF = 2
 
 ```{r}
 ##### FIT SITAR MODEL
-m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
+# m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
 
 # m2_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a', random='a+c')
 # m3_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+b+c', random='a+c')
@@ -182,6 +183,7 @@ m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+
 
 ##### SUMMARIES
 #print(m1_wt)
+summary(m1_wt$fitted)
 summary(m1_wt)
 70.10625 - 1.96*0.566513
 70.10625 + 1.96*0.566513
@@ -195,7 +197,7 @@ summary(SITAR_LO$DPP)
 ```{r}
 # ##### SAVE WORKSPACE FOR SITAR
 # save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
-save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR2.Rdata")
+# save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR2.Rdata")
 
 ```
 
@@ -211,6 +213,8 @@ SITAR_LO$a_wt <- SITAR_LO$a
 SITAR_LO$c_wt <- SITAR_LO$c
 
 # ASSESS DISTRIBUTION OF RANDOM EFFECTS
+summary(SITAR_LO$a_wt)
+summary(SITAR_LO$c_wt)
 hist(SITAR_LO$a_wt)
 hist(SITAR_LO$c_wt)
 

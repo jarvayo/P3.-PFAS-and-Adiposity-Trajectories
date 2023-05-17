@@ -5,12 +5,12 @@
 ```{r message=FALSE, warning=FALSE}
 ##### LOAD PACKAGES
 library("ggplot2")
-# library("LME")
 library("tidyr")
 library("data.table")
 library("lme4")
 library("dplyr")
 library("sitar")
+library("splines")
 
 ```
 
@@ -200,34 +200,47 @@ ggplot(aes(x = DPP, y = WEIGHT), data = LME_L) +
 ```
 
 ```{r}
+##### NATURAL CUBIC SPLINE
+##### http://www.science.smith.edu/~jcrouser/SDS293/labs/lab13-r.html
+# Get min/max values of age using the range() function
+summary(LME_LO$DPP)
+dpplims <- c(0.4, 16.6)
 
-plgModel <- lmer(WEIGHT ~ 1 + Time1 + Time2 + Time3 + Time4 + Time5 + Time6 + 
-                   Time7 + Time8 + Time9 + Time10 + Time11 + Time12 + Time13 + Time14 + 
-                   Time15 + Time16 + Time17+ Time18  + (1 + Time1 + Time2 + Time3 + Time4 + Time5 + Time6 + 
-                   Time7 + Time8 + Time9 + Time10 + Time11 + Time12 + Time13 + Time14 + 
-                   Time15 + Time16 + Time17+ Time18 | aid),
-                 data = LME_L)
+# Generate a sequence of age values spanning the range
+dpp_grid <- seq(from = min(dpplims), to = max(dpplims))
 
-summary(plgModel)
+# Fit a regression spline using natural spline functions
+wt.fit <- lm(WEIGHT ~ ns(DPP, df = 2), data = LME_LO)
+wt.pred <- predict(wt.fit, newdata = list(DPP = dpp_grid), se = TRUE)
+
+summary(wt.fit)
+69.9168 - 1.96*0.3738
+69.9168 + 1.96*0.3738
+
+# Compute error bands (1.96*SE)
+se_bands <- with(wt.pred, cbind("upper" = fit + 1.96*se.fit, 
+                                 "lower" = fit - 1.96*se.fit))
+
+
+# Plot the natural spline and error bands
+ggplot() +
+  geom_point(data = LME_LO, aes(x = DPP, y = WEIGHT), col="darkgrey") +
+  geom_line(aes(x = dpp_grid, y = wt.pred$fit), color = "blue", lwd = 1) + 
+  geom_ribbon(aes(x = dpp_grid, 
+                  ymin = se_bands[,"lower"], 
+                  ymax = se_bands[,"upper"]), 
+              alpha = 0.3) +
+  xlim(dpplims) +
+  theme_bw() +
+  theme(text = element_text(size = 20)) +
+  labs(x = "Time post index pregnancy (years)", y = "Weight (kg)")
 
 
 
+```
 
 
-
-
-LME_M1 <-  lmer(WEIGHT ~ YR_WT + (1 + YR_WT | aid), data = LME_LO)
-summary(LME_M1)
-ranef(LME_M1)$aid %>% head(5)
-#confint(LME_M1)
-
-# LME_M2 <-  lmer(WEIGHT ~ Time + (1 + Time | aid), data = LME_LO)
-# summary(LME_M2)
-# ranef(LME_M2)$aid %>% head(5)
-# confint(LME_M2)
-
-##### RANDOM EFFECTS FOR SYSTOLIC AND DIASTOLIC BP
-# ranef(m1_wt) # LME random effects
+```{r}
 
 # ATTACH THE RANDOM EFFECTS A AND C TO THE DATASET
 random_coef <- as.data.frame(ranef(LME_M1)$aid)

@@ -97,12 +97,14 @@ PFAS$c_age_days_comp_d_qu_11y <- ifelse(PFAS$c_age_days_comp_d_qu_11y <= 0, NA, 
 colnames(PFAS)[colnames(PFAS) == "Me_PFOSA_AcOH2"] <- "MeFOSAA"
 colnames(PFAS)[colnames(PFAS) == "Et_PFOSA_AcOH"] <- "EtFOSAA"
 colnames(PFAS)[colnames(PFAS) == "PFNA2"] <- "PFNA"
+
 colnames(PFAS)[colnames(PFAS) == "PFOSLOD"] <- "LOD_PFOS"
 colnames(PFAS)[colnames(PFAS) == "PFOALOD"] <- "LOD_PFOA"
 colnames(PFAS)[colnames(PFAS) == "pfna2LOD"] <- "LOD_PFNA"
 colnames(PFAS)[colnames(PFAS) == "pfhxsLOD"] <- "LOD_PFHxS"
 colnames(PFAS)[colnames(PFAS) == "mefosaaLOD"] <- "LOD_MeF"
 colnames(PFAS)[colnames(PFAS) == "etfosaaLOD"] <- "LOD_EtF"
+
 
 # DAYS POSTPARTUM AT WEIGHT MEASUREMENT (RESEARCH ASSISTANT MEASURED)
 colnames(PFAS)[colnames(PFAS) == "c_age_days_COMP_D_MSM"] <- "DPP_RAV1"
@@ -264,6 +266,44 @@ PFAS$WTK_SR11 <- PFAS$WTL_SR11 * 0.453592
 PFAS$WTK_SR14 <- ifelse(is.na(PFAS$WTK_SR14) & !is.na(PFAS$WTL_SR14), PFAS$WTL_SR14 * 0.453592, PFAS$WTK_SR14)
 PFAS$WTK_SR15 <- ifelse(is.na(PFAS$WTK_SR15) & !is.na(PFAS$WTL_SR15), PFAS$WTL_SR15 * 0.453592, PFAS$WTK_SR15)
 PFAS$WTK_SR16 <- ifelse(is.na(PFAS$WTK_SR16) & !is.na(PFAS$WTL_SR16), PFAS$WTL_SR16 * 0.453592, PFAS$WTK_SR16)
+
+```
+
+```{r}
+##### OBSERVE DISTRIBUTION OF VARIABLES TO IDENTIFY OUTLIERS
+# DAYS POSTPARTUM
+boxplot(PFAS$DPP_RAV1)
+boxplot(PFAS$DPP_RAV2) # 1 OUTLIER IDENTIFIED
+      PFAS$DPP_RAV2 <- ifelse(PFAS$DPP_RAV2 < 100, NA, PFAS$DPP_RAV2)
+boxplot(PFAS$DPP_RAV3)
+boxplot(PFAS$DPP_RAV4)
+
+
+
+# WEIGHT
+boxplot(PFAS$WT_RAV1)
+boxplot(PFAS$WT_RAV2)
+boxplot(PFAS$WT_RAV3)
+boxplot(PFAS$WT_RAV4)
+
+boxplot(PFAS$WTK_SR1) # 1 OUTLIER IDENTIFIED
+      PFAS$WTK_SR1 <- ifelse(PFAS$WTK_SR1 < 25, NA, PFAS$WTK_SR1)
+boxplot(PFAS$WTK_SR2) # 1 OUTLIER IDENTIFIED
+      PFAS$WTK_SR2 <- ifelse(PFAS$WTK_SR2 < 25, NA, PFAS$WTK_SR2)
+boxplot(PFAS$WTK_SR4)
+boxplot(PFAS$WTK_SR5)
+boxplot(PFAS$WTK_SR6)
+boxplot(PFAS$WTK_SR8) # 1 OUTLIER IDENTIFIED
+      PFAS$WTK_SR8 <- ifelse(PFAS$WTK_SR8 < 25, NA, PFAS$WTK_SR8)
+boxplot(PFAS$WTK_SR9) # 1 OUTLIER IDENTIFIED
+      PFAS$WTK_SR9 <- ifelse(PFAS$WTK_SR9 < 25, NA, PFAS$WTK_SR9)
+boxplot(PFAS$WTK_SR10) # 1 OUTLIER IDENTIFIED
+      PFAS$WTK_SR10 <- ifelse(PFAS$WTK_SR10 < 25, NA, PFAS$WTK_SR10)
+boxplot(PFAS$WTK_SR11)
+boxplot(PFAS$WTK_SR14)
+boxplot(PFAS$WTK_SR15)
+      PFAS$WTK_SR15 <- ifelse(PFAS$WTK_SR15 < 25, NA, PFAS$WTK_SR15)
+boxplot(PFAS$WTK_SR16)
 
 ```
 
@@ -508,13 +548,10 @@ summary(PFAS$DPP_SR16)
 ```
 
 ```{r}
-##### CORRECT AID "112710". THEIR VISIT 1 AND VISIT 2 OBSERVATIONS ARE MIXED.
+##### CORRECT AID "112710". THEIR 6-MONTH VISIT WAS RECORDED AS A 3-YEAR VISIT.
 PA1 <- subset(PFAS, PFAS$DPP_RAV2 < 365)
-PFAS[PFAS$aid == 112710, "DPP_RAV1"] <- 44
-PFAS[PFAS$aid == 112710, "AGE_RAV1"] <- 12265
-PFAS[PFAS$aid == 112710, "DPP_RAV2"] <- 223
-PFAS[PFAS$aid == 112710, "AGE_RAV2"] <- 12444
-PA1 <- subset(PFAS, PFAS$DPP_RAV2 < 365)
+PFAS[PFAS$aid == 112710, "DPP_RAV1"] <- 223
+PFAS[PFAS$aid == 112710, "AGE_RAV1"] <- 12444
 
 ```
 

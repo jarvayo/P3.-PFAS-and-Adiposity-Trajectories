@@ -150,9 +150,9 @@ SITAR_L <- SITAR_L[order(SITAR_L[,1], SITAR_L[,2] ),]
 
 ```{r}
 ##### IDENTIFY WEIGHT MEASUREMENT OUTLIERS
-outliers_dpp <- velout(x = DPP, y = WEIGHT, id = aid, data = SITAR_L, limit = 4)
+outliers_dpp <- velout(x = DPP, y = WEIGHT, id = aid, data = SITAR_L, limit = 5)
 
-## SET 9 WEIGHT OUTLIERS MISSING
+## SET 58 WEIGHT OUTLIERS MISSING
 SITAR_LO <- zapvelout(outliers_dpp, icode = c(4))
 SITAR_LO <- na.omit(SITAR_LO)
 
@@ -167,13 +167,13 @@ SITAR_LO <- na.omit(SITAR_LO)
 ```{r}
 ##### CHECK DEGREES OF FREEDOM
 # dfset(AGE, WEIGHT, SIT_AGE, FUN = BIC) # DF = 2
-# dfset(DPP, WEIGHT, SITAR_L, FUN = BIC) # DF = 2
+dfset(DPP, WEIGHT, SITAR_L, FUN = BIC) # DF = 2
 
 ```
 
 ```{r}
 ##### FIT SITAR MODEL
-# m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
+m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
 
 # m2_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a', random='a+c')
 # m3_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+b+c', random='a+c')
@@ -183,8 +183,8 @@ SITAR_LO <- na.omit(SITAR_LO)
 ##### SUMMARIES
 #print(m1_wt)
 summary(m1_wt)
-69.31929 - 1.96*0.4692629
-69.31929 + 1.96*0.4692629
+70.10625 - 1.96*0.566513
+70.10625 + 1.96*0.566513
 
 0.13991 - 1.96*0.2384574
 0.13991 + 1.96*0.2384574
@@ -195,23 +195,24 @@ summary(SITAR_LO$DPP)
 ```{r}
 # ##### SAVE WORKSPACE FOR SITAR
 # save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
+save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR2.Rdata")
 
 ```
 
 ```{r}
-# ##### RANDOM EFFECTS FOR SYSTOLIC AND DIASTOLIC BP
-# # ranef(m1_wt) # SITAR random effects
-# 
-# # ATTACH THE RANDOM EFFECTS A AND C TO THE DATASET
-# random_coef <- as.data.frame(m1_wt$coefficients$random$id)
-# random_coef$aid <- as.numeric(rownames(random_coef))
-# SITAR_LO <- merge(SITAR_LO, random_coef, by = "aid")
-# SITAR_LO$a_wt <- SITAR_LO$a
-# SITAR_LO$c_wt <- SITAR_LO$c
-# 
-# # ASSESS DISTRIBUTION OF RANDOM EFFECTS
-# hist(SITAR_LO$a_wt)
-# hist(SITAR_LO$c_wt)
+##### RANDOM EFFECTS FOR SYSTOLIC AND DIASTOLIC BP
+# ranef(m1_wt) # SITAR random effects
+
+# ATTACH THE RANDOM EFFECTS A AND C TO THE DATASET
+random_coef <- as.data.frame(m1_wt$coefficients$random$id)
+random_coef$aid <- as.numeric(rownames(random_coef))
+SITAR_LO <- merge(SITAR_LO, random_coef, by = "aid")
+SITAR_LO$a_wt <- SITAR_LO$a
+SITAR_LO$c_wt <- SITAR_LO$c
+
+# ASSESS DISTRIBUTION OF RANDOM EFFECTS
+hist(SITAR_LO$a_wt)
+hist(SITAR_LO$c_wt)
 
 ```
 
@@ -253,7 +254,6 @@ lines(m1_wt, opt = 'd', y2par = list(col = 'deeppink', lwd = 2),
 #        col = c("black", "deeppink", "turquoise3"), lty = c(1, 2, 2))
 
 ```
-
 
 ```{r}
 ##### GOODNESS OF FIT PLOT FOR SITAR MODELLING

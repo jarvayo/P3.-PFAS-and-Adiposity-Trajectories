@@ -17,8 +17,11 @@ library("dplyr")
 ##### LOAD DATASET
 PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
 
+```
+
+```{r}
 ##### LOAD WORKSPACE
-load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR2.Rdata")
+load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
 
 ```
 
@@ -151,11 +154,13 @@ SITAR_L <- SITAR_L[order(SITAR_L[,1], SITAR_L[,2] ),]
 
 ```{r}
 ##### IDENTIFY WEIGHT MEASUREMENT OUTLIERS
-outliers_dpp <- velout(x = DPP, y = WEIGHT, id = aid, data = SITAR_L, limit = 5)
+outliers_dpp <- velout(x = DPP, y = WEIGHT, id = aid, data = SITAR_L, limit = 4)
 
 ## SET 58 WEIGHT OUTLIERS MISSING
-SITAR_LO <- zapvelout(outliers_dpp, icode = c(4))
+SITAR_LO <- zapvelout(outliers_dpp, icode = c(4,5))
 SITAR_LO <- na.omit(SITAR_LO)
+
+#### NOTE TO SELF: WE CAN ALSO DO THE COMBINATION OF 4, 3!
 
 # outliers_age <- velout(x = AGE, y = WEIGHT, id = aid, data = SITAR_AGE, limit = 3)
 # 
@@ -168,13 +173,13 @@ SITAR_LO <- na.omit(SITAR_LO)
 ```{r}
 ##### CHECK DEGREES OF FREEDOM
 # dfset(AGE, WEIGHT, SIT_AGE, FUN = BIC) # DF = 2
-dfset(DPP, WEIGHT, SITAR_L, FUN = BIC) # DF = 2
+dfset(DPP, WEIGHT, SITAR_LO, FUN = BIC) # DF = 2
 
 ```
 
 ```{r}
 ##### FIT SITAR MODEL
-# m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
+m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
 
 # m2_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a', random='a+c')
 # m3_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+b+c', random='a+c')
@@ -197,7 +202,6 @@ summary(SITAR_LO$DPP)
 ```{r}
 # ##### SAVE WORKSPACE FOR SITAR
 # save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.Rdata")
-# save(m1_wt, file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR2.Rdata")
 
 ```
 

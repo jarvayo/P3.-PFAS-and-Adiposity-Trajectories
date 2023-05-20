@@ -24,6 +24,13 @@ PFAS_WT <- subset(PFAS_WT, select = -c(X.x, X.1, X.y))
 ```
 
 ```{r}
+##### CONVERT VELOCITY TO PERCENT
+PFAS_WT$c <- PFAS_WT$c * 100
+summary(PFAS_WT$c)
+
+```
+
+```{r}
 ##### TRANSFORM VARIABLES TO NUMERIC FOR QGC COVARIATE MATRIX
 
 # RENAME

@@ -118,6 +118,8 @@ PFAS$married <- PFAS$married_cohab
 PFAS$edu <- PFAS$coll_grad
 PFAS$fish <- PFAS$fish_d_f1
 PFAS$darkmeat <- PFAS$dark_meat_f1
+PFAS$AHEI <- PFAS$ahei_ffq1_n2128
+PFAS$exer <- PFAS$mod_pre_d + PFAS$vig_pre_d
 
 
 ##### RE-LABEL 
@@ -182,6 +184,8 @@ label(PFAS$married) <- "Married or cohabitating"
 label(PFAS$edu) <- "Education"
 label(PFAS$fish) <- "Fish and shellfish consumption"
 label(PFAS$darkmeat) <- "Dark meat consumption"
+label(PFAS$AHEI) <- "AHEI-P"
+label(PFAS$exer) <- "Exercise"
 
 
 ##### ADD UNITS
@@ -192,10 +196,11 @@ units(PFAS$bmi)  <- "kg/m2"
 units(PFAS$bmi_cat)  <- "kg/m2"
 units(PFAS$fish) <- "servings/week"
 units(PFAS$darkmeat) <- "servings/week"
+units(PFAS$exer) <- "hours/week"
 
 ##### TABE 1
 table1(~ age_enroll + gestage_enroll + menar + bmi + bmi_cat + race +  income + parity + smoke + 
-         married + edu + fish + darkmeat, data = PFAS, overall = "Total")
+         married + edu + fish + darkmeat + AHEI + exer, data = PFAS, overall = "Total")
 
 ```
 
@@ -214,6 +219,8 @@ PFAS_X$married <- PFAS_X$married_cohab
 PFAS_X$edu <- PFAS_X$coll_grad
 PFAS_X$fish <- PFAS_X$fish_d_f1
 PFAS_X$darkmeat <- PFAS_X$dark_meat_f1
+PFAS_X$AHEI <- PFAS_X$ahei_ffq1_n2128
+PFAS_X$exer <- PFAS_X$mod_pre_d + PFAS_X$vig_pre_d
 
 
 ##### RE-LABEL 
@@ -277,6 +284,8 @@ label(PFAS_X$married) <- "Married or cohabitating"
 label(PFAS_X$edu) <- "Education"
 label(PFAS_X$fish) <- "Fish and shellfish consumption"
 label(PFAS_X$darkmeat) <- "Dark meat consumption"
+label(PFAS_X$AHEI) <- "AHEI-P"
+label(PFAS_X$exer) <- "Exercise"
 
 
 ##### ADD UNITS
@@ -286,11 +295,12 @@ units(PFAS_X$bmi)  <- "kg/m2"
 units(PFAS_X$bmi_cat)  <- "kg/m2"
 units(PFAS_X$fish) <- "servings/week"
 units(PFAS_X$darkmeat) <- "servings/week"
+units(PFAS_X$exer) <- "hours/week"
 
 
 ##### TABE 1
 table1(~ age_enroll + menar + bmi + bmi_cat + race +  income + parity + smoke + 
-         married + edu + fish + darkmeat, data = PFAS_X, overall = "Total")
+         married + edu + fish + darkmeat + AHEI + exer, data = PFAS_X, overall = "Total")
 
 ```
 

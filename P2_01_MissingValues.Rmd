@@ -1,4 +1,4 @@
-#####                                 #####
+#########                                 #####
 ##### IMPUTE MISSING COVARIATE VALUES #####
 #####                                 #####
 
@@ -28,6 +28,9 @@ PFAS_NA[PFAS_NA == ""] <- NA
 
 ```{r}
 ##### CLEAN AND SUMMARIZE DATASET #####
+
+##### COMBINED EXERCISE VARIABLES
+PFAS_NA$exer <- PFAS_NA$mod_pre_d + PFAS_NA$vig_pre_d
 
 ##### CREATE A CATEGORICAL VARIABLE FOR BMI
 PFAS_NA$bmi_cat <- ifelse(PFAS_NA$bmi_mom_prepreg_d <18.5, 0,
@@ -73,6 +76,9 @@ summary(PFAS_NA$fish_d_f1)
 summary(PFAS_NA$dark_meat_f1)
 summary(PFAS_NA$ahei_ffq1_n2128)
 summary(PFAS_NA$ahei_ffq2_n2128)
+summary(PFAS_NA$mod_pre_d)
+summary(PFAS_NA$vig_pre_d)
+summary(PFAS_NA$exer)
 
 ##### CHECK MISSINGNESS OF CATEGORICAL DEMOGRAPHIC VARIABLES
 PFAS_NA$bmi_cat <- as.factor(PFAS_NA$bmi_cat)
@@ -95,7 +101,7 @@ summary(PFAS_NA$parity_cat)
 
 ##### TABLE OF MISSINGNESS
 table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
-         dark_meat_f1 + ahei_ffq1_n2128, data = PFAS_NA, overall="Total")
+         dark_meat_f1 + ahei_ffq1_n2128 + mod_pre_d + vig_pre_d + exer, data = PFAS_NA, overall="Total")
 
 table1(~ race2_mom_epi_epia_d + bmi_cat + coll_grad + smokpreg_final_d + gt70k + 
          income_hh_epq_epqa_d + parity_cat + married_cohab, data = PFAS_NA, overall="Total")
@@ -108,8 +114,9 @@ table1(~ race2_mom_epi_epia_d + bmi_cat + coll_grad + smokpreg_final_d + gt70k +
 ##### https://www.analyticsvidhya.com/blog/2016/03/tutorial-powerful-packages-imputing-missing-values/
 set.seed(1234)
 
-PFAS_ARG <- aregImpute(~ gt70k + mom_firstperiod_12y + ahei_ffq1_n2128 + fish_d_f1 + dark_meat_f1 + 
-                         married_cohab + coll_grad + race2_mom_epi_epia_d +
+PFAS_ARG <- aregImpute(~ mom_firstperiod_12y + vig_pre_d + mod_pre_d + ahei_ffq1_n2128 + 
+                         fish_d_f1 + dark_meat_f1 + income_hh_epq_epqa_d +
+                         gt70k + married_cohab + coll_grad + race2_mom_epi_epia_d +
                          smokpreg_final_d + bmi_mom_prepreg_d + bmi_cat + parity_d + 
                          g_age_days_COLL_D_BLD1 + age_mom_enroll_d + PFOS + PFOA + 
                          PFNA + PFHxS + MeFOSAA + EtFOSAA, 
@@ -215,7 +222,7 @@ PFAS_COMP$WTK_SR11 <- ifelse(PFAS_COMP$WTK_SR11 == 9999, NA, PFAS_COMP$WTK_SR11)
 ```{r}
 ##### RE-CHECK VARIABLE DISTRIBUTION FOR DATASET WITH IMPUTED DATA 
 table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
-         dark_meat_f1 + ahei_ffq1_n2128, data = PFAS_COMP, overall="Total")
+         dark_meat_f1 + ahei_ffq1_n2128 + mod_pre_d + vig_pre_d, data = PFAS_COMP, overall="Total")
 
 table1(~ race2_mom_epi_epia_d + bmi_cat + gt70k + parity_cat + married_cohab + 
          smokpreg_final_d + coll_grad, data = PFAS_COMP, overall="Total")

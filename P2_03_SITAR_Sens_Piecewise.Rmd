@@ -172,10 +172,10 @@ LME_L$Time18 <- ifelse(LME_L$YR_WT == 17, 17, 0)
 
 ```{r}
 ##### IDENTIFY WEIGHT MEASUREMENT OUTLIERS
-outliers <- velout(x = DPP, y = WEIGHT, id = aid, data = LME_L, limit = 5)
+outliers <- velout(x = DPP, y = WEIGHT, id = aid, data = LME_L, limit = 4)
 
 # SET 96 WEIGHT OUTLIERS MISSING
-LME_LO <- zapvelout(outliers, icode = c(4))
+LME_LO <- zapvelout(outliers, icode = c(4,5))
 LME_LO <- na.omit(LME_LO)
 
 ```
@@ -214,8 +214,8 @@ wt.fit <- lm(WEIGHT ~ ns(DPP, df = 2), data = LME_LO)
 wt.pred <- predict(wt.fit, newdata = list(DPP = dpp_grid), se = TRUE)
 
 summary(wt.fit)
-69.9168 - 1.96*0.3738
-69.9168 + 1.96*0.3738
+69.9668 - 1.96*0.3734
+69.9668 + 1.96*0.3734
 
 # Compute error bands (1.96*SE)
 se_bands <- with(wt.pred, cbind("upper" = fit + 1.96*se.fit, 

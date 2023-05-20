@@ -21,6 +21,9 @@ SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTraject
 PFAS_WT <- merge(x = SITAR, y = PFAS, by = "aid", all.x = TRUE)
 PFAS_WT <- subset(PFAS_WT, select = -c(X.x, X.1, X.y))
 
+```
+
+```{r}
 ##### LOAD WORKSPACE
 load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR.Rdata")
 
@@ -131,14 +134,14 @@ knots_WT <- fields::cover.design(l2mixture_WT_z, nd = 110)$design
 ```
 
 ```{r}
-# ##### BUILD BKMR MODELS
+##### BUILD BKMR MODELS
 # # SIZE PARAMETER
 # m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
 #                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
 # beep(sound = 5, expr = NULL)
 
 # # VELOCITY PARAMETER
-# m3_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
+# m2_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
 #                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
 # beep(sound = 5, expr = NULL)
 
@@ -379,10 +382,20 @@ singvar_mag <- SingVarRiskSummaries(fit = m1_WT, qs.diff = c(0.25, 0.75),
 singvar_mag
 singvar_mag2 <- SingVarRiskSummaries(fit = m1_WT, qs.diff = c(0.25, 0.75),
                                     q.fixed = c(0.50), sel = sel_m1_WT, method = "approx")
-2.49203919 - 1.96*0.6835694
-2.49203919 + 1.96*0.6835694
--1.71406655 - 1.96*0.4933906
--1.71406655 + 1.96*0.4933906
+singvar_mag2
+2.60319098 - 1.96*0.6353374
+2.60319098 + 1.96*0.6353374
+-1.98836622 - 1.96*0.4660087
+-1.98836622 + 1.96*0.4660087
+
+# > 2.60319098 - 1.96*0.6353374
+# [1] 1.35793
+# > 2.60319098 + 1.96*0.6353374
+# [1] 3.848452
+# > -1.98836622 - 1.96*0.4660087
+# [1] -2.901743
+# > -1.98836622 + 1.96*0.4660087
+# [1] -1.074989
 
 
 # WEIGHT TRAJECTORY VELOCITY
@@ -391,10 +404,30 @@ singvar_vel <- SingVarRiskSummaries(fit = m2_WT, qs.diff = c(0.25, 0.75),
 singvar_vel
 singvar_vel2 <- SingVarRiskSummaries(fit = m2_WT, qs.diff = c(0.25, 0.75),
                                     q.fixed = c(0.50), sel = sel_m2_WT, method = "approx")
-0.042620697 - 1.96*0.03331712
-0.042620697 + 1.96*0.03331712
--0.050115835 - 1.96*0.02461144
--0.050115835 + 1.96*0.02461144
+singvar_vel2
+3.3488319 - 1.96*2.905540
+3.3488319 + 1.96*2.905540
+
+-3.1973984 - 1.96*2.110555
+-3.1973984 + 1.96*2.110555
+
+3.7235200 - 1.96*2.366815
+3.7235200 + 1.96*2.366815
+
+# > 3.3488319 - 1.96*2.905540
+# [1] -2.346026
+# > 3.3488319 + 1.96*2.905540
+# [1] 9.04369
+# > 
+# > -3.1973984 - 1.96*2.110555
+# [1] -7.334086
+# > -3.1973984 + 1.96*2.110555
+# [1] 0.9392894
+# > 
+# > 3.7235200 - 1.96*2.366815
+# [1] -0.9154374
+# > 3.7235200 + 1.96*2.366815
+# [1] 8.362477
 
 
 

@@ -72,12 +72,6 @@ col_order <- c("aid", "DPP_1", "DPP_2", "DPP_3", "DPP_4", "DPP_5", "DPP_6", "DPP
                "WT_9", "WT_10", "WT_11", "WT_12", "WT_13")
 SITAR <- SITAR[, col_order]
 
-summary(SITAR$WT_13)
-summary(SITAR$WT_3)
-summary(SITAR$WT_2)
-summary(SITAR$WT_1)
-meanWT <- mean(SITAR$WT_13, na.rm = T) - mean(SITAR$WT_2, na.rm = T)
-sd(meanWT)
 
 ##### CONVERT DATASET FROM WIDE TO LONG FORMAT
 SITAR$aid <- as.factor(SITAR$aid)

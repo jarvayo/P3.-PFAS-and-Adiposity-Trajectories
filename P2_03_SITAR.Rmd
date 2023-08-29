@@ -173,7 +173,7 @@ dfset(DPP, WEIGHT, SITAR_LO, FUN = BIC) # DF = 2
 
 ```{r}
 ##### FIT SITAR MODEL
-m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
+# m1_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+c', random='a+c')
 
 # m2_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a', random='a+c')
 # m3_wt <- sitar(x = DPP, y = WEIGHT, id = aid, df = 2, data = SITAR_LO, fixed='a+b+c', random='a+c')
@@ -235,13 +235,13 @@ plot(m1_wt, opt = 'a', las = 1, cex.lab = 1.5, cex.axis = 1.5, col = aid,
 ##### SITAR MEAN SYSTOLIC BP TRAJECTORY AND MEAN TRAJECTORY VELOCITY PLOTS
 plot(m1_wt, opt = 'dv', las = 1, col = "deepskyblue3", lwd = 3, 
      y2par = list(col = 'navyblue', lwd = 3, lty = 5), ylim = c(68,80),
-     vlab = "", ylab = "", xlab = "", main = "Mean Weight Trajectory and Velocity", cex.axis = 1, cex.lab = 1)
-mtext("Time post index pregnancy (years)", side = 1, line = 2)
-mtext("Weight (kg)", side = 2, line = 3.25)
-mtext("Weight change velocity (kg/year)", side = 4, line = 2.6)
+     vlab = "", ylab = "", xlab = "", cex.axis = 1, cex.lab = 1)
+mtext("Time post index pregnancy (years)", side = 1, line = 2.5, cex = 1.5)
+mtext("Weight (kg)", side = 2, line = 3, cex = 1.5)
+mtext("Weight velocity (kg/year)", side = 4, line = 3, cex = 1.5)
 legend('topleft', legend = c("Weight (kg)", "Weight change velocity (kg/week)"), 
        text.col = c("deepskyblue3", "navyblue"),lty=1:5, col = c("deepskyblue3", "navyblue"), cex = 1, inset=0.04)
-
+ 
 ```
 
 ```{r}

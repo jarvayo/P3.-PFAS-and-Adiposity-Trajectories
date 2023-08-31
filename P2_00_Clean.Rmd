@@ -16,12 +16,12 @@ library("readxl")
 ##### LOAD DATASET
 PFAS <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_030823.sas7bdat")
 FFQ <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/ja_062922_FFQ.sas7bdat")
-DIET <- read_excel("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/DIET.xlsx")
+# DIET <- read_excel("C:/Users/jarva/Desktop/James-Todd Lab/P1.PFASandBP/Data/DIET.xlsx")
 
 # ADD FFQ VARIABLES TO PFAS DATASET
 FFQ <- subset(FFQ, select = c(aid, fish_d_f1, dark_meat_f1))
 PFAS <- merge(PFAS, FFQ, by = "aid")
-PFAS <- merge(PFAS, DIET, by = "aid")
+# PFAS <- merge(PFAS, DIET, by = "aid")
 
 ```
 
@@ -746,6 +746,13 @@ colnames(PFAS_X)<-gsub(".x","",colnames(PFAS_X))
 
 ```{r}
 ##### DROP UNNECESSARY VARIABLES
+PFAS_2 <- subset(PFAS_2, select = -c(WEIGHLBKG_9y, WEIGHLBKG_10y, c_age_days_COMP_D_SMI, c_age_days_COMP_D_TYI,
+                                     c_age_days_COMP_D_IN7Y, c_age_days_comp_d_in_12y, age_days_comp_d_qu17,
+                                     PFOSA, PFDeA, pfdeaLOD, EMPL_EPQ, EMPLHRS_EPQ, NOTLOOK_EPQ, LOOKING_EPQ,
+                                     STUDENT_EPQ, sthyroid_epi, PREGHIST_SR1, PREGSTAT_SR1,
+                                     PREGHIST_SR2, PREGSTAT_SR2, PREGHIST_SR4, PREGSTAT_SR4, PREGSTAT_SR5, PREGSTAT_SR6, 
+                                     PREGSTAT_SR8, PREGSTAT_SR9, PREGSTAT_SR10, PREGSTAT_SR11, PREGSTAT_SR14,
+                                     PREGSTAT_SR15, PREGSTAT_SR16))
 PFAS_3 <- subset(PFAS_3, select = -c(WEIGHLBKG_9y, WEIGHLBKG_10y, c_age_days_COMP_D_SMI, c_age_days_COMP_D_TYI,
                                      c_age_days_COMP_D_IN7Y, c_age_days_comp_d_in_12y, age_days_comp_d_qu17,
                                      PFOSA, PFDeA, pfdeaLOD, EMPL_EPQ, EMPLHRS_EPQ, NOTLOOK_EPQ, LOOKING_EPQ,
@@ -763,12 +770,16 @@ PFAS_3 <- subset(PFAS_3, select = -c(WEIGHLBKG_9y, WEIGHLBKG_10y, c_age_days_COM
 
 PFAS_X <- subset(PFAS_X, select = c(aid, age_mom_enroll_d, bmi_mom_prepreg_d, coll_grad, gt70k, mom_firstperiod_1,
                                     married_cohab, pari_d, race2_mom_epi_epia_d, smokpreg_final_d, fish_d_f1, 
-                                    dark_meat_f1, ahei_ffq1_n2128, mod_pre_d, vig_pre_d))
+                                    dark_meat_f1, mod_pre_d, vig_pre_d))
 # PFAS2_X <- subset(PFAS2_X, select = c(aid, age_mom_enroll_d, bmi_mom_prepreg_d, coll_grad, gt70k, mom_firstperiod_1,
 #                                     married_cohab, pari_d, race2_mom_epi_epia_d, smokpreg_final_d, fish_d_f1, 
 #                                     dark_meat_f1))
 
 ##### SAVE DATASET
+# write.csv(PFAS_2, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_IPW_C.csv", row.names = T)
+write_sas(PFAS_2, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_IPW_CL.sas7bdat")
+# THE "CL" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS CLEAN
+
 write_sas(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.sas7bdat")
 # write_sas(PFAS_4, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS2_CL.sas7bdat")
 # THE "CL" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS CLEAN

@@ -16,18 +16,94 @@ library("tidyverse")
 ```{r}
 ##### LOAD DATASET
 PFAS_NA <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.sas7bdat")
-
-```
-
-```{r}
-##### REPLACE MISSING VALUES AND BLANK SPACES WITH "NA"
-PFAS_NA <- PFAS_NA %>% mutate_all(~ifelse(is.nan(.), NA, .))
-PFAS_NA[PFAS_NA == ""] <- NA
+PFAS_IPW_NA <- read_sas("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_IPW_CL.sas7bdat")
 
 ```
 
 ```{r}
 ##### CLEAN AND SUMMARIZE DATASET #####
+
+##### REPLACE MISSING VALUES AND BLANK SPACES WITH "NA"
+PFAS_IPW_NA <- PFAS_IPW_NA %>% mutate_all(~ifelse(is.nan(.), NA, .))
+PFAS_IPW_NA[PFAS_IPW_NA == ""] <- NA
+
+##### CREATE A CATEGORICAL VARIABLE FOR BMI
+PFAS_IPW_NA$bmi_cat <- ifelse(PFAS_IPW_NA$bmi_mom_prepreg_d <18.5, 0,
+                            ifelse(PFAS_IPW_NA$bmi_mom_prepreg_d >=18.5 & PFAS_IPW_NA$bmi_mom_prepreg_d < 25.0, 1, 
+                                   ifelse(PFAS_IPW_NA$bmi_mom_prepreg_d >=25.0 & PFAS_IPW_NA$bmi_mom_prepreg_d < 30.0, 2, 
+                                          ifelse(PFAS_IPW_NA$bmi_mom_prepreg_d >=30.0 & PFAS_IPW_NA$bmi_mom_prepreg_d < 35.0, 3,
+                                                 ifelse(PFAS_IPW_NA$bmi_mom_prepreg_d >=35.0, 4, NA)))))
+
+PFAS_IPW_NA$bmi_cat <- factor(PFAS_IPW_NA$bmi_cat,
+                            levels = c(0, 1, 2, 3, 4),
+                            labels = c("Underweight (< 18.5)", "Normal weight (18.5 to 24.9)", 
+                                       "Overweight (25.0 to 29.9)", "Obese (30.0 to 34.9)", 
+                                       "Extremely obese (>= 35)"))
+
+##### FOR THE RACE VARIABLE, DUE TO SMALL NUMBERS OF OBSERVATIONS PER CATEGORY,
+##### COMBINED THE CATEGORIES "OTHER" AND ">1 RACE"
+PFAS_IPW_NA$race2_mom_epi_epia_d <- ifelse(PFAS_IPW_NA$race2_mom_epi_epia_d == "more than 1 race", 
+                                         "other", PFAS_IPW_NA$race2_mom_epi_epia_d)
+
+##### FOR THE INCOME VARIABLE, REPLACE "IDK" ANSWERS WITH "NA"
+PFAS_IPW_NA$income_hh_epq_epqa_d <- ifelse(PFAS_IPW_NA$income_hh_epq_epqa_d == 9, NA, 
+                                         PFAS_IPW_NA$income_hh_epq_epqa_d)
+
+##### FOR THE INCOME VARIABLE, DUE TO SMALL NUMBERS OF OBSERVATIONS PER CATEGORY,
+##### COMBINED THE TWO LOWEST CATEGORIES
+PFAS_IPW_NA$income_hh_epq_epqa_d <- ifelse(PFAS_IPW_NA$income_hh_epq_epqa_d == 1 | PFAS_IPW_NA$income_hh_epq_epqa_d == 2, 3, 
+                                         PFAS_IPW_NA$income_hh_epq_epqa_d)
+
+##### CREATE A CATEGORICAL VARIABLE FOR PARITY
+PFAS_IPW_NA$parity_cat <- ifelse(PFAS_IPW_NA$parity_d == 0, 0,
+                               ifelse(PFAS_IPW_NA$parity_d == 1, 1,
+                                      ifelse(PFAS_IPW_NA$parity_d > 1, 2, 0)))
+
+
+##### CHECK MISSINGNESS OF CONTINUOUS DEMOGRAPHIC VARIABLES
+summary(PFAS_IPW_NA$age_mom_enroll_d)
+  PFAS_IPW_NA$mom_age_comp_d_ma17 <- PFAS_IPW_NA$mom_age_days_comp_d_ma17/365
+summary(PFAS_IPW_NA$age_days_comp_d_ma17)
+summary(PFAS_IPW_NA$bmi_mom_prepreg_d)            
+summary(PFAS_IPW_NA$parity_d) 
+summary(PFAS_IPW_NA$mom_firstperiod_12y)  
+summary(PFAS_IPW_NA$fish_d_f1)
+summary(PFAS_IPW_NA$dark_meat_f1)
+
+##### CHECK MISSINGNESS OF CATEGORICAL DEMOGRAPHIC VARIABLES
+PFAS_IPW_NA$bmi_cat <- as.factor(PFAS_IPW_NA$bmi_cat)
+PFAS_IPW_NA$race2_mom_epi_epia_d <- as.factor(PFAS_IPW_NA$race2_mom_epi_epia_d)
+PFAS_IPW_NA$coll_grad <- as.factor(PFAS_IPW_NA$coll_grad)
+PFAS_IPW_NA$income_hh_epq_epqa_d <- as.factor(PFAS_IPW_NA$income_hh_epq_epqa_d)
+PFAS_IPW_NA$gt70k <- as.factor(PFAS_IPW_NA$gt70k)
+PFAS_IPW_NA$smokpreg_final_d <- as.factor(PFAS_IPW_NA$smokpreg_final_d)
+PFAS_IPW_NA$married_cohab <- as.factor(PFAS_IPW_NA$married_cohab)
+PFAS_IPW_NA$parity_cat <- as.factor(PFAS_IPW_NA$parity_cat)
+
+summary(PFAS_IPW_NA$bmi_cat)              
+summary(PFAS_IPW_NA$race2_mom_epi_epia_d) 
+summary(PFAS_IPW_NA$coll_grad)      
+summary(PFAS_IPW_NA$income_hh_epq_epqa_d) 
+summary(PFAS_IPW_NA$gt70k)              
+summary(PFAS_IPW_NA$smokpreg_final_d) 
+summary(PFAS_IPW_NA$married_cohab)  
+summary(PFAS_IPW_NA$parity_cat)   
+
+##### TABLE OF MISSINGNESS
+table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 + 
+         dark_meat_f1, data = PFAS_IPW_NA, overall="Total")
+
+table1(~ race2_mom_epi_epia_d + bmi_cat + coll_grad + smokpreg_final_d + gt70k + 
+         income_hh_epq_epqa_d + parity_cat + married_cohab, data = PFAS_IPW_NA, overall="Total")
+
+```
+
+```{r}
+##### CLEAN AND SUMMARIZE DATASET #####
+
+##### REPLACE MISSING VALUES AND BLANK SPACES WITH "NA"
+PFAS_NA <- PFAS_NA %>% mutate_all(~ifelse(is.nan(.), NA, .))
+PFAS_NA[PFAS_NA == ""] <- NA
 
 ##### CREATE A CATEGORICAL VARIABLE FOR BMI
 PFAS_NA$bmi_cat <- ifelse(PFAS_NA$bmi_mom_prepreg_d <18.5, 0,
@@ -97,6 +173,94 @@ table1(~ age_mom_enroll_d + mom_firstperiod_12y + bmi_mom_prepreg_d + fish_d_f1 
 
 table1(~ race2_mom_epi_epia_d + bmi_cat + coll_grad + smokpreg_final_d + gt70k + 
          income_hh_epq_epqa_d + parity_cat + married_cohab, data = PFAS_NA, overall="Total")
+
+```
+
+```{r}
+##### IMPUTE MISSING VALUES USING "HMISC".
+##### aregImpute() ALLOWS MEAN IMUPTATION USING ADDITIVE REGRESSION BOOTSTRAPPING, AND PREDICTIVE MEAN MATCHING.
+##### https://www.analyticsvidhya.com/blog/2016/03/tutorial-powerful-packages-imputing-missing-values/
+set.seed(1234)
+
+PFAS_IPW_ARG <- aregImpute(~ gt70k + mom_firstperiod_12y + fish_d_f1 + dark_meat_f1 + 
+                         married_cohab + coll_grad + race2_mom_epi_epia_d +
+                         smokpreg_final_d + bmi_mom_prepreg_d + bmi_cat + parity_d + 
+                         g_age_days_COLL_D_BLD1 + age_mom_enroll_d + PFOS + PFOA + 
+                         PFNA + PFHxS + MeFOSAA + EtFOSAA, 
+                       nk = 0, data = PFAS_IPW_NA, n.impute = 5)
+
+##### EXTRACT IMPUTED VALUES AND FORM A DATASET
+PFAS_IPW_IMP <- as.data.frame(impute.transcan(PFAS_IPW_ARG, imputation=5, data=PFAS_IPW_NA, 
+                                            list.out=TRUE, pr=FALSE, check=FALSE))
+
+##### MERGE ORIGNIAL DATASET WITH IMPUTED DATASET
+PFAS_IPW_BIND <- cbind(PFAS_IPW_NA ,PFAS_IPW_IMP)
+
+##### CREATE INDICATOR FOR MISSINGNESS IN MEASURES
+PFAS_IPW_BIND$DPP_RAV1 <- ifelse(is.na(PFAS_IPW_BIND$DPP_RAV1), 9999, PFAS_IPW_BIND$DPP_RAV1)
+PFAS_IPW_BIND$DPP_RAV2 <- ifelse(is.na(PFAS_IPW_BIND$DPP_RAV2), 9999, PFAS_IPW_BIND$DPP_RAV2)
+PFAS_IPW_BIND$DPP_RAV3 <- ifelse(is.na(PFAS_IPW_BIND$DPP_RAV3), 9999, PFAS_IPW_BIND$DPP_RAV3)
+PFAS_IPW_BIND$DPP_RAV4 <- ifelse(is.na(PFAS_IPW_BIND$DPP_RAV4), 9999, PFAS_IPW_BIND$DPP_RAV4)
+
+PFAS_IPW_BIND$DPP_SR1 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR1), 9999, PFAS_IPW_BIND$DPP_SR1)
+PFAS_IPW_BIND$DPP_SR2 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR2), 9999, PFAS_IPW_BIND$DPP_SR2)
+PFAS_IPW_BIND$DPP_SR4 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR4), 9999, PFAS_IPW_BIND$DPP_SR4)
+PFAS_IPW_BIND$DPP_SR5 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR5), 9999, PFAS_IPW_BIND$DPP_SR5)
+PFAS_IPW_BIND$DPP_SR6 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR6), 9999, PFAS_IPW_BIND$DPP_SR6)
+PFAS_IPW_BIND$DPP_SR8 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR8), 9999, PFAS_IPW_BIND$DPP_SR8)
+PFAS_IPW_BIND$DPP_SR9 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR9), 9999, PFAS_IPW_BIND$DPP_SR9)
+PFAS_IPW_BIND$DPP_SR10 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR10), 9999, PFAS_IPW_BIND$DPP_SR10)
+PFAS_IPW_BIND$DPP_SR11 <- ifelse(is.na(PFAS_IPW_BIND$DPP_SR11), 9999, PFAS_IPW_BIND$DPP_SR11)
+
+PFAS_IPW_BIND$WT_RAV1 <- ifelse(is.na(PFAS_IPW_BIND$WT_RAV1), 9999, PFAS_IPW_BIND$WT_RAV1)
+PFAS_IPW_BIND$WT_RAV2 <- ifelse(is.na(PFAS_IPW_BIND$WT_RAV2), 9999, PFAS_IPW_BIND$WT_RAV2)
+PFAS_IPW_BIND$WT_RAV3 <- ifelse(is.na(PFAS_IPW_BIND$WT_RAV3), 9999, PFAS_IPW_BIND$WT_RAV3)
+PFAS_IPW_BIND$WT_RAV4 <- ifelse(is.na(PFAS_IPW_BIND$WT_RAV4), 9999, PFAS_IPW_BIND$WT_RAV4)
+
+PFAS_IPW_BIND$WTK_SR1 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR1), 9999, PFAS_IPW_BIND$WTK_SR1)
+PFAS_IPW_BIND$WTK_SR2 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR2), 9999, PFAS_IPW_BIND$WTK_SR2)
+PFAS_IPW_BIND$WTK_SR4 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR4), 9999, PFAS_IPW_BIND$WTK_SR4)
+PFAS_IPW_BIND$WTK_SR5 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR5), 9999, PFAS_IPW_BIND$WTK_SR5)
+PFAS_IPW_BIND$WTK_SR6 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR6), 9999, PFAS_IPW_BIND$WTK_SR6)
+PFAS_IPW_BIND$WTK_SR8 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR8), 9999, PFAS_IPW_BIND$WTK_SR8)
+PFAS_IPW_BIND$WTK_SR9 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR9), 9999, PFAS_IPW_BIND$WTK_SR9)
+PFAS_IPW_BIND$WTK_SR10 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR10), 9999, PFAS_IPW_BIND$WTK_SR10)
+PFAS_IPW_BIND$WTK_SR11 <- ifelse(is.na(PFAS_IPW_BIND$WTK_SR11), 9999, PFAS_IPW_BIND$WTK_SR11)
+
+##### DROP VARIABLES WITH MISSING (NON-IMPUTED) DATA
+PFAS_IPW_COMP <- PFAS_IPW_BIND[ , colSums(is.na(PFAS_IPW_BIND)) == 0]
+PFAS_IPW_COMP <- PFAS_IPW_COMP %>% select(-contains(".1"))
+
+##### USE INDICATOR FOR MISSING MEASURE TO RE-ENTER "NA"
+PFAS_IPW_COMP$DPP_RAV1 <- ifelse(PFAS_IPW_COMP$DPP_RAV1 == 9999, NA, PFAS_IPW_COMP$DPP_RAV1)
+PFAS_IPW_COMP$DPP_RAV2 <- ifelse(PFAS_IPW_COMP$DPP_RAV2 == 9999, NA, PFAS_IPW_COMP$DPP_RAV2)
+PFAS_IPW_COMP$DPP_RAV3 <- ifelse(PFAS_IPW_COMP$DPP_RAV3 == 9999, NA, PFAS_IPW_COMP$DPP_RAV3)
+PFAS_IPW_COMP$DPP_RAV4 <- ifelse(PFAS_IPW_COMP$DPP_RAV4 == 9999, NA, PFAS_IPW_COMP$DPP_RAV4)
+
+PFAS_IPW_COMP$DPP_SR1 <- ifelse(PFAS_IPW_COMP$DPP_SR1 == 9999, NA, PFAS_IPW_COMP$DPP_SR1)
+PFAS_IPW_COMP$DPP_SR2 <- ifelse(PFAS_IPW_COMP$DPP_SR2 == 9999, NA, PFAS_IPW_COMP$DPP_SR2)
+PFAS_IPW_COMP$DPP_SR4 <- ifelse(PFAS_IPW_COMP$DPP_SR4 == 9999, NA, PFAS_IPW_COMP$DPP_SR4)
+PFAS_IPW_COMP$DPP_SR5 <- ifelse(PFAS_IPW_COMP$DPP_SR5 == 9999, NA, PFAS_IPW_COMP$DPP_SR5)
+PFAS_IPW_COMP$DPP_SR6 <- ifelse(PFAS_IPW_COMP$DPP_SR6 == 9999, NA, PFAS_IPW_COMP$DPP_SR6)
+PFAS_IPW_COMP$DPP_SR8 <- ifelse(PFAS_IPW_COMP$DPP_SR8 == 9999, NA, PFAS_IPW_COMP$DPP_SR8)
+PFAS_IPW_COMP$DPP_SR9 <- ifelse(PFAS_IPW_COMP$DPP_SR9 == 9999, NA, PFAS_IPW_COMP$DPP_SR9)
+PFAS_IPW_COMP$DPP_SR10 <- ifelse(PFAS_IPW_COMP$DPP_SR10 == 9999, NA, PFAS_IPW_COMP$DPP_SR10)
+PFAS_IPW_COMP$DPP_SR11 <- ifelse(PFAS_IPW_COMP$DPP_SR11 == 9999, NA, PFAS_IPW_COMP$DPP_SR11)
+
+PFAS_IPW_COMP$WT_RAV1 <- ifelse(PFAS_IPW_COMP$WT_RAV1 == 9999, NA, PFAS_IPW_COMP$WT_RAV1)
+PFAS_IPW_COMP$WT_RAV2 <- ifelse(PFAS_IPW_COMP$WT_RAV2 == 9999, NA, PFAS_IPW_COMP$WT_RAV2)
+PFAS_IPW_COMP$WT_RAV3 <- ifelse(PFAS_IPW_COMP$WT_RAV3 == 9999, NA, PFAS_IPW_COMP$WT_RAV3)
+PFAS_IPW_COMP$WT_RAV4 <- ifelse(PFAS_IPW_COMP$WT_RAV4 == 9999, NA, PFAS_IPW_COMP$WT_RAV4)
+
+PFAS_IPW_COMP$WTK_SR1 <- ifelse(PFAS_IPW_COMP$WTK_SR1 == 9999, NA, PFAS_IPW_COMP$WTK_SR1)
+PFAS_IPW_COMP$WTK_SR2 <- ifelse(PFAS_IPW_COMP$WTK_SR2 == 9999, NA, PFAS_IPW_COMP$WTK_SR2)
+PFAS_IPW_COMP$WTK_SR4 <- ifelse(PFAS_IPW_COMP$WTK_SR4 == 9999, NA, PFAS_IPW_COMP$WTK_SR4)
+PFAS_IPW_COMP$WTK_SR5 <- ifelse(PFAS_IPW_COMP$WTK_SR5 == 9999, NA, PFAS_IPW_COMP$WTK_SR5)
+PFAS_IPW_COMP$WTK_SR6 <- ifelse(PFAS_IPW_COMP$WTK_SR6 == 9999, NA, PFAS_IPW_COMP$WTK_SR6)
+PFAS_IPW_COMP$WTK_SR8 <- ifelse(PFAS_IPW_COMP$WTK_SR8 == 9999, NA, PFAS_IPW_COMP$WTK_SR8)
+PFAS_IPW_COMP$WTK_SR9 <- ifelse(PFAS_IPW_COMP$WTK_SR9 == 9999, NA, PFAS_IPW_COMP$WTK_SR9)
+PFAS_IPW_COMP$WTK_SR10 <- ifelse(PFAS_IPW_COMP$WTK_SR10 == 9999, NA, PFAS_IPW_COMP$WTK_SR10)
+PFAS_IPW_COMP$WTK_SR11 <- ifelse(PFAS_IPW_COMP$WTK_SR11 == 9999, NA, PFAS_IPW_COMP$WTK_SR11)
 
 ```
 
@@ -200,6 +364,9 @@ table1(~ bmi_cat + race2_mom_epi_epia_d + coll_grad + smokpreg_final_d + gt70k +
 
 ```{r}
 ##### SAVE DATASET
+write.csv(PFAS_IPW_COMP, file = "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_IPW_COMP.csv", row.names = T)
+# THE "COMP" AT THE END OF THE SAVED FILE NAMES INDICATE THAT THESE DATASETS ARE CLEAN AND HAVE NO MISSING DATA
+
 write.csv(PFAS_COMP,"C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_COMP.csv", row.names = T)
 # THE "COMP" AT THE END OF THE SAVED FILE NAMES INDICATE THAT THESE DATASETS ARE CLEAN AND HAVE NO MISSING DATA
 

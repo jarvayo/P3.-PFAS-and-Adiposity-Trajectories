@@ -123,8 +123,6 @@ qc_c2
 # ##### VIEW HOW EACH PFAS IS SCORED. THESE ARE QUANTIED EXPOSURES #####
 head(qc_a1$qx)
 head(qc_c1$qx)
-head(l2qc_whr1$qx)
-head(l2qc_muac1$qx)
 
 ```
 

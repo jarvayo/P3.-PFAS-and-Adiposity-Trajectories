@@ -231,7 +231,7 @@ colnames(PFAS)[colnames(PFAS) == "m_age_days_qu16"] <- "AGE_SR12"
 ```
 
 ```{r}
-##### IF WEIGHT IS IN KG, LEAVE AS IN. IF WEIGHT IS IN LB, CONVERT TO KG
+##### IF WEIGHT IS IN KG, LEAVE AS IS. IF WEIGHT IS IN LB, CONVERT TO KG
 # summary(PFAS$WTL_SR1)
 # summary(PFAS$WTK_SR1)
 # summary(PFAS$WTL_SR2)
@@ -279,7 +279,6 @@ boxplot(PFAS$DPP_RAV2) # 1 OUTLIER IDENTIFIED
       PFAS$DPP_RAV2 <- ifelse(PFAS$DPP_RAV2 < 100, NA, PFAS$DPP_RAV2)
 boxplot(PFAS$DPP_RAV3)
 boxplot(PFAS$DPP_RAV4)
-
 
 
 # WEIGHT

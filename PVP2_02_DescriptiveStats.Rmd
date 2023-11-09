@@ -69,8 +69,8 @@ PFAS$parity <- PFAS$parity_d
 PFAS$smoke <- PFAS$smokpreg_final_d
 PFAS$married <- PFAS$married_cohab
 PFAS$edu <- PFAS$coll_grad
-PFAS$fish <- PFAS$fish_d_f1
-PFAS$darkmeat <- PFAS$dark_meat_f1
+PFAS$fish <- (PFAS$fish_d_f1)*7
+PFAS$darkmeat <- (PFAS$dark_meat_f1)*7
 
 
 ##### RE-LABEL 
@@ -163,8 +163,8 @@ PFAS_X$parity <- PFAS_X$pari_d
 PFAS_X$smoke <- PFAS_X$smokpreg_final_d
 PFAS_X$married <- PFAS_X$married_cohab
 PFAS_X$edu <- PFAS_X$coll_grad
-PFAS_X$fish <- PFAS_X$fish_d_f1
-PFAS_X$darkmeat <- PFAS_X$dark_meat_f1
+PFAS_X$fish <- (PFAS_X$fish_d_f1)*7
+PFAS_X$darkmeat <- (PFAS_X$dark_meat_f1)*7
 
 
 ##### RE-LABEL 

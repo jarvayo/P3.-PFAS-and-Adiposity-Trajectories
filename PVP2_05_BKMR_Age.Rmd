@@ -22,7 +22,7 @@ PFAS_SIT <- merge(x = SITAR, y = PFAS, by = "aid", all.x = TRUE)
 PFAS_SIT <- subset(PFAS_SIT, select = -c(X.x, X.1, X.y))
 
 ##### LOAD WORKSPACE
-# load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR_AGE.Rdata")
+load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR_AGE.Rdata")
 
 ```
 
@@ -151,39 +151,39 @@ knots_WT_A1 <- fields::cover.design(l2mix_WT_z_A1, nd = 30)$design
 ```
 
 ```{r}
-##### BUILD BKMR MODELS
-# SIZE PARAMETER
-m1_WT <- kmbayes(y = a_WT, Z = l2mix_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
-                 verbose = FALSE, varsel = TRUE, knots = knots_WT)
-beep(sound = 5, expr = NULL)
-
-m1_WT_A0 <- kmbayes(y = a_WT_A0, Z = l2mix_WT_z_A0, X = cov_WT_A0, iter = 20000, family = "gaussian",
-                 verbose = FALSE, varsel = TRUE, knots = knots_WT_A0)
-beep(sound = 5, expr = NULL)
-
-m1_WT_A1 <- kmbayes(y = a_WT_A1, Z = l2mix_WT_z_A1, X = cov_WT_A1, iter = 20000, family = "gaussian",
-                 verbose = FALSE, varsel = TRUE, knots = knots_WT_A1)
-beep(sound = 5, expr = NULL)
-
-# VELOCITY PARAMETER
-m2_WT <- kmbayes(y = c_WT, Z = l2mix_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
-                 verbose = FALSE, varsel = TRUE, knots = knots_WT)
-beep(sound = 5, expr = NULL)
-
-m2_WT_A0 <- kmbayes(y = c_WT_A0, Z = l2mix_WT_z_A0, X = cov_WT_A0, iter = 20000, family = "gaussian",
-                 verbose = FALSE, varsel = TRUE, knots = knots_WT_A0)
-beep(sound = 5, expr = NULL)
-
-m2_WT_A1 <- kmbayes(y = c_WT_A1, Z = l2mix_WT_z_A1, X = cov_WT_A1, iter = 20000, family = "gaussian",
-                 verbose = FALSE, varsel = TRUE, knots = knots_WT_A1)
-beep(sound = 5, expr = NULL)
+# ##### BUILD BKMR MODELS
+# # SIZE PARAMETER
+# # m1_WT <- kmbayes(y = a_WT, Z = l2mix_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
+# #                  verbose = FALSE, varsel = TRUE, knots = knots_WT)
+# # beep(sound = 5, expr = NULL)
+# 
+# m1_WT_A0 <- kmbayes(y = a_WT_A0, Z = l2mix_WT_z_A0, X = cov_WT_A0, iter = 20000, family = "gaussian",
+#                  verbose = FALSE, varsel = TRUE, knots = knots_WT_A0)
+# beep(sound = 5, expr = NULL)
+# 
+# m1_WT_A1 <- kmbayes(y = a_WT_A1, Z = l2mix_WT_z_A1, X = cov_WT_A1, iter = 20000, family = "gaussian",
+#                  verbose = FALSE, varsel = TRUE, knots = knots_WT_A1)
+# beep(sound = 5, expr = NULL)
+# 
+# # VELOCITY PARAMETER
+# # m2_WT <- kmbayes(y = c_WT, Z = l2mix_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
+# #                  verbose = FALSE, varsel = TRUE, knots = knots_WT)
+# # beep(sound = 5, expr = NULL)
+# 
+# m2_WT_A0 <- kmbayes(y = c_WT_A0, Z = l2mix_WT_z_A0, X = cov_WT_A0, iter = 20000, family = "gaussian",
+#                  verbose = FALSE, varsel = TRUE, knots = knots_WT_A0)
+# beep(sound = 5, expr = NULL)
+# 
+# m2_WT_A1 <- kmbayes(y = c_WT_A1, Z = l2mix_WT_z_A1, X = cov_WT_A1, iter = 20000, family = "gaussian",
+#                  verbose = FALSE, varsel = TRUE, knots = knots_WT_A1)
+# beep(sound = 5, expr = NULL)
 
 ```
 
 ```{r}
-##### SAVE WORKSPACE FOR SBP BKMR FUNCTIONS
-save(m1_WT_A0, m2_WT_A0, m1_WT_A1, m2_WT_A1,
-     file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR_AGE.Rdata")
+# ##### SAVE WORKSPACE FOR SBP BKMR FUNCTIONS
+# save(m1_WT_A0, m2_WT_A0, m1_WT_A1, m2_WT_A1,
+#      file="C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR_AGE.Rdata")
 
 ```
 

@@ -560,10 +560,10 @@ sing_mag_B0 <- SingVarRiskSummaries(fit = m1_WT_B0, qs.diff = c(0.25, 0.75),
 sing_mag_B0
 sing_mag2_B0 <- SingVarRiskSummaries(fit = m1_WT_B0, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m1_WT_B0, method = "approx")
-2.49203919 - 1.96*0.6835694
-2.49203919 + 1.96*0.6835694
--1.71406655 - 1.96*0.4933906
--1.71406655 + 1.96*0.4933906
+0.92653812 - 1.96*0.5281431
+0.92653812 + 1.96*0.5281431
+-0.69892883 - 1.96*0.4068548
+-0.69892883 + 1.96*0.4068548
 
 
 sing_mag_B1 <- SingVarRiskSummaries(fit = m1_WT_B1, qs.diff = c(0.25, 0.75),
@@ -571,10 +571,10 @@ sing_mag_B1 <- SingVarRiskSummaries(fit = m1_WT_B1, qs.diff = c(0.25, 0.75),
 sing_mag_B1
 sing_mag2_B1 <- SingVarRiskSummaries(fit = m1_WT_B1, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m1_WT_B1, method = "approx")
-2.49203919 - 1.96*0.6835694
-2.49203919 + 1.96*0.6835694
--1.71406655 - 1.96*0.4933906
--1.71406655 + 1.96*0.4933906
+3.578811582 - 1.96*1.2603356	
+3.578811582 + 1.96*1.2603356	
+-2.285675836 - 1.96*0.7015891	
+-2.285675836 + 1.96*0.7015891	
 
 
 # WEIGHT TRAJECTORY VELOCITY
@@ -583,10 +583,8 @@ sing_vel_B0 <- SingVarRiskSummaries(fit = m2_WT_B0, qs.diff = c(0.25, 0.75),
 sing_vel_B0
 sing_vel2_B0 <- SingVarRiskSummaries(fit = m2_WT_B0, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m2_WT_B0, method = "approx")
-0.042620697 - 1.96*0.03331712
-0.042620697 + 1.96*0.03331712
--0.050115835 - 1.96*0.02461144
--0.050115835 + 1.96*0.02461144
+6.9043068 - 1.96*2.917462
+6.9043068 + 1.96*2.917462
 
 
 sing_vel_B1 <- SingVarRiskSummaries(fit = m2_WT_B1, qs.diff = c(0.25, 0.75),
@@ -594,11 +592,6 @@ sing_vel_B1 <- SingVarRiskSummaries(fit = m2_WT_B1, qs.diff = c(0.25, 0.75),
 sing_vel_B1
 sing_vel2_B1 <- SingVarRiskSummaries(fit = m2_WT_B1, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m2_WT_B1, method = "approx")
-0.042620697 - 1.96*0.03331712
-0.042620697 + 1.96*0.03331712
--0.050115835 - 1.96*0.02461144
--0.050115835 + 1.96*0.02461144
-
 
 
 

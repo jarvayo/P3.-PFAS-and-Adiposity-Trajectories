@@ -560,10 +560,6 @@ sing_mag_A0 <- SingVarRiskSummaries(fit = m1_WT_A0, qs.diff = c(0.25, 0.75),
 sing_mag_A0
 sing_mag2_A0 <- SingVarRiskSummaries(fit = m1_WT_A0, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m1_WT_A0, method = "approx")
-2.49203919 - 1.96*0.6835694
-2.49203919 + 1.96*0.6835694
--1.71406655 - 1.96*0.4933906
--1.71406655 + 1.96*0.4933906
 
 
 sing_mag_A1 <- SingVarRiskSummaries(fit = m1_WT_A1, qs.diff = c(0.25, 0.75),
@@ -571,10 +567,9 @@ sing_mag_A1 <- SingVarRiskSummaries(fit = m1_WT_A1, qs.diff = c(0.25, 0.75),
 sing_mag_A1
 sing_mag2_A1 <- SingVarRiskSummaries(fit = m1_WT_A1, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m1_WT_A1, method = "approx")
-2.49203919 - 1.96*0.6835694
-2.49203919 + 1.96*0.6835694
--1.71406655 - 1.96*0.4933906
--1.71406655 + 1.96*0.4933906
+0.8220594 - 1.96*0.4700953	
+0.8220594 + 1.96*0.4700953	
+
 
 
 # WEIGHT TRAJECTORY VELOCITY

@@ -578,10 +578,6 @@ sing_vel_A0 <- SingVarRiskSummaries(fit = m2_WT_A0, qs.diff = c(0.25, 0.75),
 sing_vel_A0
 sing_vel2_A0 <- SingVarRiskSummaries(fit = m2_WT_A0, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m2_WT_A0, method = "approx")
-0.042620697 - 1.96*0.03331712
-0.042620697 + 1.96*0.03331712
--0.050115835 - 1.96*0.02461144
--0.050115835 + 1.96*0.02461144
 
 
 sing_vel_A1 <- SingVarRiskSummaries(fit = m2_WT_A1, qs.diff = c(0.25, 0.75),
@@ -589,11 +585,8 @@ sing_vel_A1 <- SingVarRiskSummaries(fit = m2_WT_A1, qs.diff = c(0.25, 0.75),
 sing_vel_A1
 sing_vel2_A1 <- SingVarRiskSummaries(fit = m2_WT_A1, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m2_WT_A1, method = "approx")
-0.042620697 - 1.96*0.03331712
-0.042620697 + 1.96*0.03331712
--0.050115835 - 1.96*0.02461144
--0.050115835 + 1.96*0.02461144
-
+6.662054 - 1.96*3.289609	
+6.662054 + 1.96*3.289609	
 
 
 

@@ -592,6 +592,8 @@ sing_vel_B1 <- SingVarRiskSummaries(fit = m2_WT_B1, qs.diff = c(0.25, 0.75),
 sing_vel_B1
 sing_vel2_B1 <- SingVarRiskSummaries(fit = m2_WT_B1, qs.diff = c(0.25, 0.75),
                                      q.fixed = c(0.50), sel = sel_m2_WT_B1, method = "approx")
+9.887698 - 1.96*5.715234	
+9.887698 + 1.96*5.715234	
 
 
 

@@ -787,3 +787,19 @@ write.csv(PFAS_X, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTraject
 # THE "X" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS COMPOSED OF EXCLUDED INDIVIDUALS
 
 ```
+
+```{r}
+
+table(PFAS_2$LOD_PFOS)
+table(PFAS_2$LOD_PFOA)
+table(PFAS_2$LOD_PFNA)
+table(PFAS_2$LOD_PFHxS)
+table(PFAS_2$LOD_MeF)
+table(PFAS_2$LOD_EtF)
+table(PFAS_2$pfdeaLOD)
+table(PFAS_2$PFDeA)
+table(PFAS_2$PFOSA)
+
+
+```
+

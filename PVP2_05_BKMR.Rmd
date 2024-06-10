@@ -21,8 +21,8 @@ SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTraject
 PFAS_WT <- merge(x = SITAR, y = PFAS, by = "aid", all.x = TRUE)
 PFAS_WT <- subset(PFAS_WT, select = -c(X.x, X.1, X.y))
 
-##### LOAD WORKSPACE
-load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR.Rdata")
+# ##### LOAD WORKSPACE
+# load("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_BKMR.Rdata")
 
 ```
 
@@ -124,16 +124,16 @@ knots_WT <- fields::cover.design(l2mixture_WT_z, nd = 110)$design
 ```
 
 ```{r}
-# ##### BUILD BKMR MODELS
-# # SIZE PARAMETER
-# m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
-#                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
-# beep(sound = 5, expr = NULL)
-# 
-# # VELOCITY PARAMETER
-# m2_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
-#                      verbose = FALSE, varsel = TRUE, knots = knots_WT)
-# beep(sound = 5, expr = NULL)
+##### BUILD BKMR MODELS
+# SIZE PARAMETER
+m1_WT <- kmbayes(y = a_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
+                     verbose = FALSE, varsel = TRUE, knots = knots_WT)
+beep(sound = 5, expr = NULL)
+
+# VELOCITY PARAMETER
+m2_WT <- kmbayes(y = c_WT, Z = l2mixture_WT_z, X = cov_WT, iter = 20000, family = "gaussian",
+                     verbose = FALSE, varsel = TRUE, knots = knots_WT)
+beep(sound = 5, expr = NULL)
 
 ```
 
@@ -188,36 +188,37 @@ univar_vel <- PredictorResponseUnivar(fit = m2_WT, sel = sel_m2_WT, method = "ap
 ##### PLOT UNIVARIATE EXPOSURE-RESPONSE FUNCTION
 # WEIGHT TRAJECTORY SIZE (MAGNITUDE)
 uni1_WT <- ggplot(univar_mag, aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) + facet_wrap(~ variable) +
-  geom_smooth(stat = "identity", colour = 'black') + xlab("Plasma PFAS, log2(ng/mL)") + ylab("Weight magnitude (kg)") + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-18, 18) +
+  xlab("Plasma PFAS, log2(ng/mL)") + ylab("Weight magnitude (kg)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1) + theme(text = element_text(size = 25))
 
 uni11_WT <- ggplot(univar_mag[1:50,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-20, 20) +
   xlab("Plasma PFOS, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni12_WT <- ggplot(univar_mag[51:100,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-20, 20) + 
   xlab("Plasma PFOA, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni13_WT <- ggplot(univar_mag[101:150,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-20, 20) + 
   xlab("Plasma PFNA, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni14_WT <- ggplot(univar_mag[151:200,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-20, 20) + 
   xlab("Plasma PFHxS, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni15_WT <- ggplot(univar_mag[201:250,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-20, 20) +
   xlab("Plasma MeFOSAA, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni16_WT <- ggplot(univar_mag[251:300,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-20, 20) +
   xlab("Plasma EtFOSAA, log2(ng/mL)") + ylab("Weight traj mag (kg)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
@@ -232,36 +233,37 @@ uni16_WT
 
 # WEIGHT TRAJECTORY VELOCITY
 uni2_WT <- ggplot(univar_vel, aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) + facet_wrap(~ variable) +
- geom_smooth(stat = "identity", colour = 'black') + xlab("Plasma PFAS, log2(ng/mL)") + ylab("Weight traj velocity (%)") + 
+ geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-50, 50) + 
+  xlab("Plasma PFAS, log2(ng/mL)") + ylab("Weight traj velocity (%)") + 
  geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1) + theme(text = element_text(size = 25))
 
 uni21_WT <- ggplot(univar_vel[1:50,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-50, 50) +
   xlab("Plasma PFOS, log2(ng/mL)") + ylab("Weight traj velocity (%)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) +theme(text = element_text(size = 26.5))
 
 uni22_WT <- ggplot(univar_vel[51:100,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-50, 50) +
   xlab("Plasma PFOA, log2(ng/mL)") + ylab("Weight traj velocity (%)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni23_WT <- ggplot(univar_vel[101:150,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-50, 50) + 
   xlab("Plasma PFNA, log2(ng/mL)") + ylab("Weight traj velocity (%)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni24_WT <- ggplot(univar_vel[151:200,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-50, 50) +
   xlab("Plasma PFHxS, log2(ng/mL)") + ylab("Weight traj velocity (%)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni25_WT <- ggplot(univar_vel[201:250,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-50, 50) +
   xlab("Plasma MeFOSAA, log2(ng/mL)") + ylab("Weight traj velocity (%)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 
 uni26_WT <- ggplot(univar_vel[251:300,], aes(z, est, ymin = est - 1.96*se, ymax = est + 1.96*se)) +
-  geom_smooth(stat = "identity", colour = 'black') + theme_classic() + 
+  geom_smooth(stat = "identity", colour = 'black') + xlim(-10, 5) + ylim(-50, 50) +
   xlab("Plasma EtFOSAA, log2(ng/mL)") + ylab("Weight traj velocity (%)") + 
   geom_hline(yintercept = 0, colour = 'red', linetype = 'dashed', linewidth = 1.5) + theme(text = element_text(size = 26.5))
 

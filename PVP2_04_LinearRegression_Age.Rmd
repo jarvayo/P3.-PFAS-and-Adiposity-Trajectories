@@ -15,7 +15,6 @@ library("table1")
 ##### LOAD DATASET
 PFAS <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS.csv")
 SITAR <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/P2_SITAR.csv")
-PFAS_IPW <- read.csv("C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_IPW_COMP.csv")
 
 ##### MERGE DATASETS
 PFAS_SIT <- merge(x = SITAR, y = PFAS, by = "aid", all.x = TRUE)

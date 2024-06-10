@@ -466,9 +466,6 @@ PFAS_X <- subset(PFAS_X, select = c(aid, age_mom_enroll_d, bmi_mom_prepreg_d, co
 
 
 ##### SAVE DATASET
-write_sas(PFAS_2, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_IPW_CL.sas7bdat")
-# THE "CL" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS CLEAN
-
 write_sas(PFAS_3, "C:/Users/jarva/Desktop/James-Todd Lab/P2.PFASandWeightTrajectories/Data/PFAS_CL.sas7bdat")
 # THE "CL" AT THE END OF THE SAVED FILES INDICATES THAT THE DATASET IS CLEAN
 

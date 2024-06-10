@@ -191,7 +191,7 @@ plot(m1_wt, opt = 'dv', las = 1, col = "deepskyblue3", lwd = 3,
 mtext("Time post index pregnancy (years)", side = 1, line = 2.5, cex = 1.5)
 mtext("Weight (kg)", side = 2, line = 3, cex = 1.5)
 mtext("Weight velocity (kg/year)", side = 4, line = 3, cex = 1.5)
-legend('topleft', legend = c("Weight (kg)", "Weight change velocity (kg/week)"), 
+legend('topleft', legend = c("Weight (kg)", "Weight change velocity (kg/year)"), 
        text.col = c("deepskyblue3", "navyblue"),lty=1:5, col = c("deepskyblue3", "navyblue"), cex = 1, inset=0.04)
  
 ```
